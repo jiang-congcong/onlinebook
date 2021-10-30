@@ -21,18 +21,7 @@ public class RedisOperationUtils {
     private RedisTemplate<String, Object> redisTemplate;
 
     public Object get(String key) { //获取缓存值
-        Object resultObj = String.valueOf(new Random().nextInt(100000));
-        if(!StrUtil.hasEmpty(key)){
-            if(null!=redisTemplate.opsForValue().get(key)){
-                resultObj = redisTemplate.opsForValue().get(key);
-                double d = Double.parseDouble(resultObj.toString())+1; //递增
-                set(key,d);
-            }
-            else {
-                set(key,1000001); //初始化
-            }
-        }
-        return resultObj;
+        return redisTemplate.opsForValue().get(key);
     }
 
     public boolean set(String key, Object value) { //设置缓存值
