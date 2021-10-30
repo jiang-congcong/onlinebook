@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cn.book.dao.UserDAO">
+
+    <insert id="register" parameterType="java.util.Map">
+        insert into
+        t_user(t_username,t_password,t_salt,t_user_id,t_phone_num,valid_state)
+        values
+        (#{username},#{password},#{salt},#{userId},#{phoneNum},#{validState})
+    </insert>
+
+    <select id="queryUserPassword" parameterType="java.lang.String" resultType="java.util.Map">
+        select
+        distinct
+        t_password password,
+        t_salt salt,
+        t_user_id userId
+        from t_user
+        where
+        t_username = #{userId}
+        and valid_state = '1'
+    </select>
+
+    <select id="checkUsernameIsRegister" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        t_username
+        from
+        t_user
+        where
+        t_username = #{username}
+        and valid_state = '1'
+    </select>
+
+</mapper>

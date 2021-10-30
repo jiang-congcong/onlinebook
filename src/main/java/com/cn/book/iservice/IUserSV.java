@@ -1,5 +1,6 @@
 package com.cn.book.iservice;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,5 +11,7 @@ public interface IUserSV {
 
     void register(Map<String,Object> reqMap) throws Exception;
 
+    Map<String,Object> queryUserPasswordAndSalt(String userId) throws Exception;
 
+    boolean checkUsernameIsRegister(String username) throws Exception;
 }

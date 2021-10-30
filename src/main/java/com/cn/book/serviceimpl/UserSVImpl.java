@@ -2,11 +2,15 @@ package com.cn.book.serviceimpl;
 
 import com.cn.book.dao.UserDAO;
 import com.cn.book.iservice.IUserSV;
+import com.xiaoleilu.hutool.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,5 +33,29 @@ public class UserSVImpl implements IUserSV {
                 throw new Exception("-9999",e);
             }
         }
+    }
+
+    @Override
+    public Map<String,Object> queryUserPasswordAndSalt(String userId) throws Exception{
+        Map<String,Object> resultMap = new HashMap<>();
+        if(!StrUtil.hasEmpty(userId)){
+            List<Map<String,Object>> resultList= userDAO.queryUserPassword(userId);
+            if(null!=resultList&&resultList.size()>0){
+                resultMap = resultList.get(0);
+            }
+        }
+        return resultMap;
+    }
+
+    @Override
+    public boolean checkUsernameIsRegister(String username) throws Exception{
+        boolean result = true;
+        if(!StrUtil.hasEmpty(username)){
+            List<String> resultList = userDAO.checkUsernameIsRegister(username);
+            if(null==resultList || resultList.size()==0){
+                result = false;
+            }
+        }
+        return result;
     }
 }
