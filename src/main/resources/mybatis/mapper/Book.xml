@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cn.book.dao.BookDAO">
+
+    <select id="queryBookList" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+        distinct
+        t1.book_name name,
+        t1.book_id bookId,
+        t1.book_price price,
+        t1.book_introduce introduce,
+        t3.catg_name type,
+        t5.sku_total skuTotal,
+        t5.sku_sale skuSale,
+        t6.picture_url image
+        from
+        t_book t1
+        left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
+        left join t_catg t3 on t2.catg_id = t3.catg_id and t3.valid_state = '1'
+        left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
+        left join t_sku t5 on t4.sku_id = t5.sku_id and t5.valid_state = '1'
+        left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
+        <where>
+        t1.valid_state = '1'
+        <if test="key != null and key != ''">
+            and find_in_str(#{key},t1.`book_name`)
+        </if>
+        <if test="type != null and type != ''">
+            and find_in_str(#{key},t3.`catg_name`)
+        </if>
+        <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
+            and t1.book_price between #{minPrice} and #{maxPrice}
+        </if>
+        order by
+        <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
+            t1.book_price ${order} ,
+        </if>
+        t1.book_id DESC
+        limit ${start} , ${limit}
+        </where>
+
+    </select>
+
+
+    <select id="queryBookListTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select
+        count(*) total
+        from
+        t_book t1
+        left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
+        left join t_catg t3 on t2.catg_id = t3.catg_id and t3.valid_state = '1'
+        left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
+        left join t_sku t5 on t4.sku_id = t5.sku_id and t5.valid_state = '1'
+        <where>
+            <if test="key != null and key != ''">
+                and find_in_str(#{key},t1.`book_name`)
+            </if>
+            <if test="type != null and type != ''">
+                and find_in_str(#{key},t3.`catg_name`)
+            </if>
+            <if test="catgId != null and catgId != ''">
+                and t3.catg_id = #{catgId}
+            </if>
+            <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
+                and t1.book_price between #{minPrice} and #{maxPrice}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryAllCatgId" resultType="java.util.Map">
+        select
+        distinct
+        catg_id catgId,
+        catg_name catgName
+        from t_catg
+        where
+        valid_state = '1'
+    </select>
+
+</mapper>
