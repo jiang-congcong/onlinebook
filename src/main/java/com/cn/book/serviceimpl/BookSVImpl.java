@@ -1,7 +1,10 @@
 package com.cn.book.serviceimpl;
 
+import com.cn.book.controller.UserController;
 import com.cn.book.dao.BookDAO;
 import com.cn.book.iservice.IBookSV;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,8 @@ import java.util.Map;
  */
 @Service
 public class BookSVImpl implements IBookSV {
+
+    public static Logger logger = LoggerFactory.getLogger(BookSVImpl.class);
 
     @Autowired
     private BookDAO bookDAO;
@@ -53,11 +58,11 @@ public class BookSVImpl implements IBookSV {
         if(null!=allCatgId&&allCatgId.size()>0){
             for(Map<String,Object> eachMap:allCatgId) {
                 String catgId = (String)eachMap.get("catgId");
-                Map<String, Object> reqMaq = new HashMap<>();
-                reqMaq.put("start", 0);
-                reqMaq.put("limit", 4);
-                reqMaq.put("catgId", catgId);
-                List<Map<String, Object>> queryBookList = bookDAO.queryBookList(reqMaq);
+                Map<String, Object> reqMap = new HashMap<>();
+                reqMap.put("start", 0);
+                reqMap.put("limit", 4);
+                reqMap.put("catgId", catgId);
+                List<Map<String, Object>> queryBookList = bookDAO.queryBookList(reqMap);
                 if(null!=queryBookList&&queryBookList.size()>0){
                     Map<String,Object> eachResultMap = new HashMap<>();
                     eachResultMap.put("type",eachMap.get("catgName"));
@@ -68,5 +73,41 @@ public class BookSVImpl implements IBookSV {
         }
         return resultList;
     }
+
+    @Override
+    public Map<String,Object> queryBookDetail(String bookId) throws Exception{
+        Map<String,Object> resultMap = new HashMap<>();
+        Map<String,Object> reqMap = new HashMap<>();
+        reqMap.put("bookId",bookId);
+        reqMap.put("start", 0);
+        reqMap.put("limit", 10);
+        List<Map<String, Object>> queryBookList = new ArrayList<>();
+        try {
+            queryBookList = bookDAO.queryBookList(reqMap);
+        }catch (Exception e){
+            logger.error("查询图书详情失败");
+        }
+        if(null!=queryBookList&&queryBookList.size()>0){
+            resultMap = queryBookList.get(0);
+            List<String> bookImageSmall = new ArrayList<>();
+            List<String> bookBigImg = new ArrayList<>();
+            try {
+                bookImageSmall = bookDAO.queryBookImageSmall(bookId);
+                bookBigImg = bookDAO.queryBookBigPic(bookId);
+            }catch (Exception e){
+                logger.error("查询图书图片组合或大图失败");
+            }
+            resultMap.put("imageSmall",bookImageSmall);
+            if(null!=bookBigImg&&bookBigImg.size()>0){
+                resultMap.put("detail",bookBigImg.get(0));
+            }
+            else{
+                resultMap.put("detail","");
+            }
+        }
+        return resultMap;
+    }
+
+
 
 }

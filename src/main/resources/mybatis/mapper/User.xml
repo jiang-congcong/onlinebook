@@ -32,5 +32,15 @@
         t_username = #{username}
         and valid_state = '1'
     </select>
+    
+    <update id="updateUserProfilePic" parameterType="java.util.Map">
+        update
+        t_user_profile_picture
+        set
+        `t_picture_url` = #{userImage}
+        where
+        `t_user_id` = #{userId}
+        and `valid_state` = '1'
+    </update>
 
 </mapper>

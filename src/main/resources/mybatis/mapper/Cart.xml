@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cn.book.dao.CartDAO">
+
+    <select id="queryCartListByUserId" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+        distinct
+        t1.book_name name,
+        t1.book_id bookId,
+        t1.book_price price,
+        t1.book_introduce introduce,
+        t3.catg_name type,
+        t5.sku_total skuTotal,
+        t5.sku_sale skuSale,
+        t6.picture_url image,
+        t7.cart_id cartId,
+        t7.cart_num bookNum
+        from
+        t_cart t7
+        left join t_book t1 on t7.book_id = t1.book_id and t1.valid_state = '1'
+        left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
+        left join t_catg t3 on t2.catg_id = t3.catg_id and t3.valid_state = '1'
+        left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
+        left join t_sku t5 on t4.sku_id = t5.sku_id and t5.valid_state = '1'
+        left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
+        where
+        t7.user_id = #{userId}
+        t7.valid_state = '1'
+        order by
+        t7.cart_id
+        limit ${start} , ${limit}
+    </select>
+
+    <select id="queryCartListByUserIdTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select
+        distinct
+        count(distinct t7.cart_id) total
+        from
+        t_cart t7
+        left join t_book t1 on t7.book_id = t1.book_id and t1.valid_state = '1'
+        left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
+        left join t_catg t3 on t2.catg_id = t3.catg_id and t3.valid_state = '1'
+        left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
+        left join t_sku t5 on t4.sku_id = t5.sku_id and t5.valid_state = '1'
+        left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
+        where
+        t7.user_id = #{userId}
+        t7.valid_state = '1'
+    </select>
+
+</mapper>

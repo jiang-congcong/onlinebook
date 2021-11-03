@@ -163,4 +163,29 @@ public class UserController {
         return result;
     }
 
+    @RequestMapping(method = RequestMethod.POST,value = "/updateUserInfo")
+    @ResponseBody
+    @ApiOperation(value = "用户头像修改")
+    public Result updateUserInfo(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        String userId = (String)reqMap.get("userId");
+        String username = (String)reqMap.get("username");
+        String userImage = (String)reqMap.get("userImage");
+        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(username)||StrUtil.hasEmpty(userImage)){
+            result.setRtnCode("400");
+            result.setRtnMessage("用户id或图片地址不能为空！");
+            return result;
+        }
+        boolean isUpdateSuccess = iUserSV.updateUserInfo(reqMap);
+        if(isUpdateSuccess){
+            result.setRtnMessage("更新用户头像成功！");
+            result.setRtnCode("200");
+        }
+        else{
+            result.setRtnMessage("更新用户头像失败！");
+            result.setRtnCode("400");
+        }
+        return result;
+    }
+
 }

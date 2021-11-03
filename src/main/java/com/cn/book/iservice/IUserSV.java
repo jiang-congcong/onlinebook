@@ -1,5 +1,7 @@
 package com.cn.book.iservice;
 
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.util.List;
 import java.util.Map;
 
@@ -14,4 +16,6 @@ public interface IUserSV {
     Map<String,Object> queryUserPasswordAndSalt(String userId) throws Exception;
 
     boolean checkUsernameIsRegister(String username) throws Exception;
+
+    boolean updateUserInfo(Map<String,Object> reqMap) throws Exception;
 }

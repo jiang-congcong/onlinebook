@@ -18,4 +18,8 @@ public interface BookDAO {
 
     List<Map<String,Object>> queryAllCatgId() throws Exception;
 
+    List<String> queryBookImageSmall(String bookId) throws Exception;
+
+    List<String> queryBookBigPic(String bookId) throws Exception;
+
 }

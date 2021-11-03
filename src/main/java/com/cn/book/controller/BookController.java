@@ -83,4 +83,21 @@ public class BookController {
         return result;
     }
 
+    @RequestMapping(method = RequestMethod.POST,value = "/detail")
+    @ResponseBody
+    @ApiOperation(value = "查询书籍详情")
+    public Result queryBookDetail(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        String bookId = (String)reqMap.get("bookId");
+        if(StrUtil.hasEmpty(bookId)){
+            result.setRtnMessage("书籍ID不能为空！");
+            result.setRtnCode("400");
+            return result;
+        }
+        Map<String,Object> queryDetailMap = iBookSV.queryBookDetail(bookId);
+        result.setRtnCode("200");
+        result.setResult(queryDetailMap);
+        return result;
+    }
+
 }

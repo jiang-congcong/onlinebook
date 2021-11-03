@@ -17,4 +17,6 @@ public interface UserDAO {
     List<Map<String,Object>> queryUserPassword(String userId) throws Exception;
 
     List<String> checkUsernameIsRegister(String username) throws Exception;
+
+    void updateUserProfilePic(Map<String,Object> reqMap) throws Exception;
 }

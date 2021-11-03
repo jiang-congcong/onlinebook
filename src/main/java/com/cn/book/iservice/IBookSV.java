@@ -13,4 +13,6 @@ public interface IBookSV {
 
     List<Map<String,Object>> queryHomePage() throws Exception;
 
+    Map<String,Object> queryBookDetail(String bookId) throws Exception;
+
 }

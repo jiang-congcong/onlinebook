@@ -33,6 +33,9 @@
         <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
             and t1.book_price between #{minPrice} and #{maxPrice}
         </if>
+        <if test="bookId != null and bookId != ''">
+            and t1.book_id = #{bookId}
+        </if>
         order by
         <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
             t1.book_price ${order} ,
@@ -77,6 +80,26 @@
         from t_catg
         where
         valid_state = '1'
+    </select>
+
+    <select id="queryBookImageSmall" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        distinct
+        picture_url imageSmall
+        from t_book_image_small
+        where
+        book_id = #{bookId}
+        and valid_state = '1'
+    </select>
+    
+    <select id="queryBookBigPic" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        distinct
+        picture_url bigPic
+        from t_book_big_picture
+        where
+        book_id = #{bookId}
+        and valid_state = '1'
     </select>
 
 </mapper>

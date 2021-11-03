@@ -58,4 +58,18 @@ public class UserSVImpl implements IUserSV {
         }
         return result;
     }
+
+    @Override
+    public boolean updateUserInfo(Map<String,Object> reqMap) throws Exception{
+        boolean result = true;
+        if(null!=reqMap){
+            try {
+                userDAO.updateUserProfilePic(reqMap);
+            }catch (Exception e){
+                logger.error("更改用户头像失败！");
+                result = false;
+            }
+        }
+        return result;
+    }
 }
