@@ -3,6 +3,7 @@ package com.cn.book.controller;
 import com.cn.book.iservice.ICartSV;
 import com.cn.book.utils.Result;
 import com.xiaoleilu.hutool.util.StrUtil;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/cart")
+@Api(value = "/cart",description = "购物车操作类")
 public class CartController {
 
     public static Logger logger = LoggerFactory.getLogger(CartController.class);
