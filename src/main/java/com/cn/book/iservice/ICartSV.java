@@ -1,5 +1,7 @@
 package com.cn.book.iservice;
 
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.util.List;
 import java.util.Map;
 
@@ -10,5 +12,9 @@ import java.util.Map;
 public interface ICartSV {
 
     Map<String,Object> queryCartListByUserId(Map<String,Object> reqMap);
+
+    boolean addCart(Map<String,Object> reqMap) throws Exception;
+
+    boolean deleteCart(@RequestBody Map<String,Object> reqMap) throws Exception;
 
 }

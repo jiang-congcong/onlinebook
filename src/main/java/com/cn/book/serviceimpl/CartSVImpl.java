@@ -2,11 +2,13 @@ package com.cn.book.serviceimpl;
 
 import com.cn.book.dao.CartDAO;
 import com.cn.book.iservice.ICartSV;
+import com.cn.book.utils.CommonUtils;
 import com.xiaoleilu.hutool.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +27,9 @@ public class CartSVImpl implements ICartSV {
 
     @Autowired
     private CartDAO cartDAO;
+
+    @Autowired
+    private CommonUtils commonUtils;
 
     @Override
     public Map<String,Object> queryCartListByUserId(Map<String,Object> reqMap){
@@ -50,5 +55,59 @@ public class CartSVImpl implements ICartSV {
         resultMap.put("total",total);
         resultMap.put("data",resultList);
         return resultMap;
+    }
+
+    public boolean addCart(Map<String,Object> reqMap) throws Exception{
+        boolean result = false;
+        if(null!=reqMap&&reqMap.size()>0){
+            String cartId = (String)reqMap.get("cartId");
+            if(StrUtil.hasEmpty(cartId)){ //新增购物车记录
+                try {
+                    String createCartId = commonUtils.createAllId();
+                    reqMap.put("cartId",createCartId);
+                    cartDAO.insertNewCart(reqMap);
+                    result = true;
+                }catch (Exception e){
+                    logger.error("新增购物车失败");
+                }
+            }
+            else{ //更新数量
+                String cartBookNum = "";
+                try {
+                    cartBookNum = cartDAO.selectCartBookNum(cartId);
+                }catch (Exception e){
+                    logger.error("查询购物车数量失败！");
+                }
+                String operateTye = (String)reqMap.get("operateType");
+                int modfNum = (Integer) reqMap.get("bookNum");
+                if(!StrUtil.hasEmpty(cartBookNum)){
+                    if("1".equals(operateTye)) {
+                        modfNum = modfNum + Integer.valueOf(cartBookNum);
+                    }
+                    else if("0".equals(operateTye)){
+                        modfNum = Integer.valueOf(cartBookNum) - modfNum;
+                    }
+                }
+                reqMap.put("bookNum",modfNum);
+                try {
+                    cartDAO.updateCartBook(reqMap);
+                    result = true;
+                }catch (Exception e){
+                    logger.error("更新购物车数量失败！");
+                }
+            }
+        }
+        return result;
+    }
+
+    public boolean deleteCart(@RequestBody Map<String,Object> reqMap) throws Exception{
+        boolean flag = false;
+        try{
+            cartDAO.deleteCartBook(reqMap);
+            flag = true;
+        }catch (Exception e){
+            logger.error("删除购物车失败！");
+        }
+        return flag;
     }
 }

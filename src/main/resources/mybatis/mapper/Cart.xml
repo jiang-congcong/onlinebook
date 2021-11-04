@@ -27,7 +27,7 @@
         left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
         where
         t7.user_id = #{userId}
-        t7.valid_state = '1'
+        and t7.valid_state = '1'
         order by
         t7.cart_id
         limit ${start} , ${limit}
@@ -35,7 +35,6 @@
 
     <select id="queryCartListByUserIdTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
         select
-        distinct
         count(distinct t7.cart_id) total
         from
         t_cart t7
@@ -47,7 +46,46 @@
         left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
         where
         t7.user_id = #{userId}
-        t7.valid_state = '1'
+        and t7.valid_state = '1'
     </select>
+
+    <insert id="insertNewCart" parameterType="java.util.Map">
+        insert into
+        t_cart(`cart_id`,`book_id`,`cart_num`,`user_id`,`valid_state`,`create_user_id`,`create_time`)
+        values
+        (#{cartId},#{bookId},#{bookNum},#{userId},'1',#{userId},NOW())
+    </insert>
+
+    <update id="updateCartBook" parameterType="java.util.Map">
+        update
+        t_cart
+        set
+        cart_num = #{bookNum},
+        modf_user_id = #{userId}
+        where
+        cart_id = #{cartId}
+        and valid_state = '1'
+    </update>
+
+    <select id="selectCartBookNum" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        cart_num bookNum
+        from
+        t_cart
+        where
+        cart_id = #{cartId}
+        and valid_state = '1'
+    </select>
+
+    <update id="deleteCartBook" parameterType="java.util.Map">
+        update
+        t_cart
+        set
+        valid_state = '0',
+        modf_user_id = #{userId}
+        where
+        cart_id = #{cartId}
+        and valid_state = '1'
+    </update>
 
 </mapper>
