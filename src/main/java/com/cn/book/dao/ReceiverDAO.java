@@ -16,4 +16,8 @@ public interface ReceiverDAO {
 
     void addReceiverInfo(Map<String,Object> reqMap) throws Exception;
 
+    void delReceiverInfo(Map<String,Object> reqMap) throws Exception;
+
+    void updateReceiverInfo(Map<String,Object> reqMap) throws Exception;
+
 }

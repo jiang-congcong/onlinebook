@@ -90,4 +90,51 @@ public class ReceiverController {
         return result;
     }
 
+    @RequestMapping(method = RequestMethod.POST,value = "/delReceiver")
+    @ResponseBody
+    @ApiOperation(value = "删除收货人信息")
+    public Result delReceiver(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        String userId = (String)reqMap.get("userId");
+        String receiverId = (String)reqMap.get("receiverId");
+        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(receiverId)){
+            result.setRtnCode("400");
+            result.setRtnMessage("收货人id、用户id均不能为空!");
+            return result;
+        }
+        try{
+            iReceiverSV.delReceiverInfo(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("删除收货人信息失败！"+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("删除收货人信息失败");
+        }
+        return result;
+    }
+
+    @RequestMapping(method = RequestMethod.POST,value = "/updateReceiver")
+    @ResponseBody
+    @ApiOperation(value = "修改收货人信息")
+    public Result updateReceiver(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        String userId = (String)reqMap.get("userId");
+        String receiverId = (String)reqMap.get("receiverId");
+        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(receiverId)){
+            result.setRtnCode("400");
+            result.setRtnMessage("收货人id、用户id均不能为空!");
+            return result;
+        }
+        try{
+            iReceiverSV.updateReceiverInfo(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("删除收货人信息失败！"+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("删除收货人信息失败");
+        }
+        return result;
+    }
+
+
 }

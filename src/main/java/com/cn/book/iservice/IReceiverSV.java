@@ -14,4 +14,8 @@ public interface IReceiverSV {
     List<Map<String,Object>> queryReceiverList(Map<String,Object> reqMap) throws Exception;
 
     boolean addReceiver(Map<String,Object> reqMap) throws Exception;
+
+    boolean delReceiverInfo(Map<String,Object> reqMap) throws Exception;
+
+    boolean updateReceiverInfo(Map<String,Object> reqMap) throws Exception;
 }

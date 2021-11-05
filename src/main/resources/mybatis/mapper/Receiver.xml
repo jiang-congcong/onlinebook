@@ -25,4 +25,31 @@
         (#{receiverId},#{receiverName},#{receiverPhone},#{receiverAddress},'1',#{userId},NOW(),#{userId},#{isDefault})
     </insert>
 
+    <delete id="delReceiverInfo" parameterType="java.util.Map">
+        update
+        t_receiver
+        set
+        valid_state = '0'
+        where
+        receiver_id = #{receiverId}
+        and user_id = #{userId}
+        and valid_state = '1'
+    </delete>
+
+    <update id="updateReceiverInfo" parameterType="java.util.Map">
+        update
+        t_receiver
+        set
+        receiver_name = #{receiverName},
+        receiver_phone = #{receiverPhone},
+        receiver_address = #{receiverAddress},
+        is_default_address = #{isDefault}
+        where
+        receiver_id = #{receiverId}
+        and user_id = #{userId}
+        and valid_state = '1'
+    </update>
+
+
+
 </mapper>

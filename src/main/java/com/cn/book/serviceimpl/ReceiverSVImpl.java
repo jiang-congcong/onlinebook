@@ -38,6 +38,7 @@ public class ReceiverSVImpl implements IReceiverSV {
         return resultList;
     }
 
+    @Override
     public boolean addReceiver(Map<String,Object> reqMap) throws Exception{
         boolean result = false;
         try{
@@ -45,6 +46,30 @@ public class ReceiverSVImpl implements IReceiverSV {
             result = true;
         }catch (Exception e){
             logger.error("新增收货地址失败");
+        }
+        return result;
+    }
+
+    @Override
+    public boolean delReceiverInfo(Map<String,Object> reqMap) throws Exception{
+        boolean result = true;
+        try{
+            receiverDAO.delReceiverInfo(reqMap);
+        }catch (Exception e){
+            logger.error("删除用户信息失败！"+e);
+            result = false;
+        }
+        return result;
+    }
+
+    @Override
+    public boolean updateReceiverInfo(Map<String,Object> reqMap) throws Exception{
+        boolean result = true;
+        try{
+            receiverDAO.updateReceiverInfo(reqMap);
+        }catch (Exception e){
+            logger.error("更新用户信息失败！"+e);
+            result = false;
         }
         return result;
     }
