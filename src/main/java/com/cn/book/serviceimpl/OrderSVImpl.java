@@ -3,11 +3,13 @@ package com.cn.book.serviceimpl;
 import com.cn.book.controller.CartController;
 import com.cn.book.dao.OrderDAO;
 import com.cn.book.iservice.IOrderSV;
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,37 @@ public class OrderSVImpl implements IOrderSV {
     public boolean insertOrderInfo(List<Map<String,Object>> reqList) throws Exception{
         boolean result = true;
         try{
-            orderDAO.insertOrderInfo(reqList);
+            //orderDAO.insertOrderInfo(reqList);
+            List<String> bookIdList = new ArrayList<>();
+            for(Map<String,Object> eachMap:reqList){
+                String bookId = eachMap.get("bookId").toString();
+                bookIdList.add(bookId);
+            }
+            List<Map<String,Object>> querySkuInfo = orderDAO.selectBookSku(bookIdList);
+            Map<String,Map<String,Object>> dealDataMap = new HashMap<>();
+            for(Map<String,Object> eachMap:querySkuInfo){
+                dealDataMap.put(eachMap.get("bookId").toString(),eachMap);
+            }
+            for(Map<String,Object> eachMap:reqList){
+                int bookNum = (Integer) eachMap.get("bookNum");//下单数量
+                String bookId = eachMap.get("bookId").toString();
+                Map<String,Object> getMap = dealDataMap.get(bookId);
+                double skuTotal = (Double) getMap.get("skuTotal");
+                double skuSale = (Double) getMap.get("skuSale");
+                if(bookNum+skuSale>skuTotal){
+                    logger.error("书籍id"+bookId+":下单数量大于库存数量！");
+                    throw new Exception("书籍id"+bookId+":下单数量大于库存数量！");
+                }
+                getMap.put("saleNum",bookNum);
+                try {
+                    orderDAO.updateBookSku(getMap);
+                }catch (Exception e){
+                    logger.error("更新库存失败");
+                    throw new Exception("更新库存失败！");
+                }
+            }
+            orderDAO.insertOrderInfo(reqList);//写入订单
+
         }catch (Exception e){
             logger.error("批量插入订单记录失败："+e);
             result = false;

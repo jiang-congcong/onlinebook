@@ -1,6 +1,5 @@
 package com.cn.book.dao;
 
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,4 +22,8 @@ public interface OrderDAO {
     List<Map<String,Object>> queryUserOrderList(Map<String,Object> reqMap) throws Exception;
 
     int queryUserOrderListTotal(Map<String,Object> reqMap) throws Exception;
+
+    void updateBookSku(Map<String,Object> reqMap) throws Exception;
+
+    List<Map<String,Object>> selectBookSku(@Param("bookIdList") List<String> bookId) throws Exception;
 }

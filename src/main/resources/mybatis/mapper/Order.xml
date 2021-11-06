@@ -107,4 +107,36 @@
         and t1.user_id = #{userId}
     </select>
 
+    <update id="updateBookSku" parameterType="java.util.Map">
+        update
+        t_sku
+        set
+        sku_sale = sku_sale + #{saleNum} ,
+        sku_modf_time = NOW(),
+        version = version + 1
+        where
+        sku_id = #{skuId}
+        and valid_state = '1'
+        and version = #{version}
+    </update>
+
+    <select id="selectBookSku" parameterType="java.util.List" resultType="java.util.Map">
+        select
+        distinct
+        t1.sku_total skuTotal,
+        t1.sku_sale skuSale,
+        t2.book_id bookId,
+        t1.version version,
+        t1.sku_id skuId
+        from
+        t_sku t1
+        left join t_sku_book_relation t2 on t1.sku_id = t2.sku_id and t2.valid_state = '1'
+        where
+        t2.book_id in
+        <foreach collection="bookIdList" item="bookId" separator="," open="(" close=")">
+            #{bookId}
+        </foreach>
+        and t1.valid_state = '1'
+    </select>
+
 </mapper>

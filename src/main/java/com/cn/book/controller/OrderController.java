@@ -3,18 +3,18 @@ package com.cn.book.controller;
 import com.cn.book.iservice.IOrderSV;
 import com.cn.book.utils.CommonUtils;
 import com.cn.book.utils.Result;
+import com.google.common.util.concurrent.RateLimiter;
 import com.xiaoleilu.hutool.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jiangcongcong
@@ -27,6 +27,8 @@ public class OrderController {
 
     public static Logger logger = LoggerFactory.getLogger(OrderController.class);
 
+    private RateLimiter rateLimiter = RateLimiter.create(500);//令牌桶内一次创建500哥令牌
+
     @Autowired
     private CommonUtils commonUtils;
 
@@ -38,6 +40,11 @@ public class OrderController {
     @ApiOperation(value = "用户下单")
     public Result insertOrderInfo(@RequestBody Map<String,Object> reqMap) throws Exception{
         Result result = new Result();
+        if(!rateLimiter.tryAcquire(2, TimeUnit.SECONDS)){
+            result.setRtnMessage("下单失败，活动过于火爆，请重试");
+            result.setRtnCode("-400");
+            return result;
+        }
         String userId = (String)reqMap.get("userId");
         String receiverId = (String)reqMap.get("receiverId");
         String receiverName = (String)reqMap.get("receiverName");
