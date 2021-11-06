@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cn.book.dao.OrderDAO">
+
+    <insert id="insertOrderInfo" parameterType="java.util.List">
+        insert into
+        t_order(`order_id`,`user_id`,`book_id`,`receiver_id`,`order_num`,`create_time`,`valid_state`,`receiver_name`,`receiver_phone`,`receiver_address`,`order_price`)
+        values
+        <foreach collection="reqList" item="item" separator=",">
+            (#{item.orderId},#{item.userId},#{item.bookId},#{item.receiverId},#{item.bookNum},NOW(),#{item.validState},#{item.receiverName},#{item.receiverPhone},#{item.receiverAddress},#{item.price})
+        </foreach>
+    </insert>
+
+    <select id="queryOrderInfo" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+        t1.order_id orderId,
+        t1.user_id userId,
+        t1.valid_state orderState,
+        t1.order_price orderPrice,
+        t1.create_time orderDate,
+        t1.receiver_id receiverId,
+        t1.receiver_name receiverName,
+        t1.receiver_phone receiverPhone,
+        t1.receiver_address receiverAddress,
+        t2.book_id bookId,
+        t2.book_name bookName,
+        t3.picture_url image,
+        t2.book_price price,
+        t2.book_introduce introduce,
+        t4.catg_name type,
+        t1.order_num bookNum,
+        t6.sku_total skuTotal,
+        t6.sku_sale skuSale
+        from
+        t_order t1
+        left join t_book t2 on t1.book_id = t2.book_id
+        left join t_picture t3 on t2.book_id = t3.book_id and t3.valid_state = '1'
+        left join t_catg t4 on t2.book_catg_id = t4.catg_id
+        left join t_sku_book_relation t5 on t2.book_id = t5.book_id and t5.valid_state = "1"
+        left join t_sku t6 on t5.sku_id = t6.sku_id
+        where
+        t1.order_id = #{orderId}
+        and t1.user_id = #{userId}
+    </select>
+    
+    <update id="updateOrderState" parameterType="java.util.Map">
+        update
+        t_order
+        set
+        valid_state = #{orderState}
+        <if test="payType != null and payTpye != ''">
+            ,pay_type = #{payType}
+        </if>
+        where
+        user_id = #{userId}
+        and order_id = #{orderId}
+    </update>
+
+    <select id="queryUserOrderList" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+        t1.order_id orderId,
+        t1.user_id userId,
+        t1.valid_state orderState,
+        t1.order_price orderPrice,
+        t1.create_time orderDate,
+        t1.receiver_id receiverId,
+        t1.receiver_name receiverName,
+        t1.receiver_phone receiverPhone,
+        t1.receiver_address receiverAddress,
+        t2.book_id bookId,
+        t2.book_name bookName,
+        t3.picture_url image,
+        t2.book_price price,
+        t2.book_introduce introduce,
+        t4.catg_name type,
+        t1.order_num bookNum,
+        t6.sku_total skuTotal,
+        t6.sku_sale skuSale
+        from
+        t_order t1
+        left join t_book t2 on t1.book_id = t2.book_id
+        left join t_picture t3 on t2.book_id = t3.book_id and t3.valid_state = '1'
+        left join t_catg t4 on t2.book_catg_id = t4.catg_id
+        left join t_sku_book_relation t5 on t2.book_id = t5.book_id and t5.valid_state = "1"
+        left join t_sku t6 on t5.sku_id = t6.sku_id
+        where
+        t1.valid_state in ('0','1','2')
+        and t1.user_id = #{userId}
+        order by t1.create_time
+        limit ${start} , ${limit}
+    </select>
+
+    <select id="queryUserOrderListTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select
+        count(distinct t1.order_id) total
+        from
+        t_order t1
+        left join t_book t2 on t1.book_id = t2.book_id
+        left join t_picture t3 on t2.book_id = t3.book_id and t3.valid_state = '1'
+        left join t_catg t4 on t2.book_catg_id = t4.catg_id
+        left join t_sku_book_relation t5 on t2.book_id = t5.book_id and t5.valid_state = "1"
+        left join t_sku t6 on t5.sku_id = t6.sku_id
+        where
+        t1.valid_state in ('0','1','2')
+        and t1.user_id = #{userId}
+    </select>
+
+</mapper>
