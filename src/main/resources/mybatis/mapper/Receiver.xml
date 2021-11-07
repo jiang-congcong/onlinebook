@@ -50,6 +50,17 @@
         and valid_state = '1'
     </update>
 
+    <select id="queryHasDefaultAddress" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        distinct
+        receiver_id receiverId
+        from
+        t_receiver
+        where
+        user_id = #{userId}
+        and is_default_address = '1'
+    </select>
+
 
 
 </mapper>

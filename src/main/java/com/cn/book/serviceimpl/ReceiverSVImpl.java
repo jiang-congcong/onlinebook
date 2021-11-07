@@ -42,10 +42,16 @@ public class ReceiverSVImpl implements IReceiverSV {
     public boolean addReceiver(Map<String,Object> reqMap) throws Exception{
         boolean result = false;
         try{
+            List<String> isDefaultAddress = receiverDAO.queryHasDefaultAddress(reqMap.get("userId").toString());
+            if(null!=isDefaultAddress&&isDefaultAddress.size()>0){
+                logger.error("已有默认地址，不可新增默认地址");
+                throw new Exception("已有默认地址，不可新增默认地址");
+            }
             receiverDAO.addReceiverInfo(reqMap);
             result = true;
         }catch (Exception e){
             logger.error("新增收货地址失败");
+            throw new Exception(e.getMessage());
         }
         return result;
     }

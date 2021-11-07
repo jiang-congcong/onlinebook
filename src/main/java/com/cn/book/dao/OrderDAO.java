@@ -26,4 +26,6 @@ public interface OrderDAO {
     void updateBookSku(Map<String,Object> reqMap) throws Exception;
 
     List<Map<String,Object>> selectBookSku(@Param("bookIdList") List<String> bookId) throws Exception;
+
+    void deleteCartInfo(Map<String,Object> reqMap) throws Exception;
 }

@@ -61,6 +61,17 @@ public class OrderSVImpl implements IOrderSV {
             }
             orderDAO.insertOrderInfo(reqList);//写入订单
 
+            Map<String,Object> deleteCartInfo = new HashMap<>();//删除购物车
+            List<String> cartIdList = new ArrayList<>();
+            for(Map<String,Object> eachMap:reqList){
+                if(null!=eachMap.get("cartId")){
+                    cartIdList.add(eachMap.get("cartId").toString());
+                }
+            }
+            deleteCartInfo.put("cartIdList",cartIdList);
+            deleteCartInfo.put("userId",reqList.get(0).get("userId"));
+
+
         }catch (Exception e){
             logger.error("批量插入订单记录失败："+e);
             result = false;

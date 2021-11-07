@@ -139,4 +139,18 @@
         and t1.valid_state = '1'
     </select>
 
+    <update id="deleteCartInfo" parameterType="java.util.Map">
+        update
+        t_cart
+        set
+        valid_state = '0'
+        where
+        user_id = #{userId}
+        and valid_state = '1'
+        and cart_id in
+        <foreach collection="cartIdList" separator="," item="cartId" open="(" close=")">
+            #{cartId}
+        </foreach>
+    </update>
+
 </mapper>

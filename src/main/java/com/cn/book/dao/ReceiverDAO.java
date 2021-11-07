@@ -20,4 +20,6 @@ public interface ReceiverDAO {
 
     void updateReceiverInfo(Map<String,Object> reqMap) throws Exception;
 
+    List<String> queryHasDefaultAddress(String userId) throws Exception;
+
 }
