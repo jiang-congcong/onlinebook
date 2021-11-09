@@ -102,4 +102,110 @@
         and valid_state = '1'
     </select>
 
+    <insert id="addBook" parameterType="java.util.Map">
+        insert into
+        t_book(`book_id`,`book_name`,`book_price`,`book_catg_id`,`book_introduce`,`book_shop_id`,`book_shop_name`,`book_sku_id`,`valid_state`,`book_create_time`,`book_create_user_id`)
+        values
+        (#{bookId},#{bookName},#{bookPrice},#{catgId},#{describe},#{shopId},#{shopName},#{skuId},#{validState},NOW(),#{userId})
+    </insert>
+
+    <update id="updateBookInfo" parameterType="java.util.Map">
+        update
+        t_book
+        set
+        book_name = #{bookName},
+        book_price = #{bookPrice},
+        book_introduce = #{describe},
+        valid_state = #{validState},
+        book_modf_user_id = #{userId},
+        book_modf_time = NOW()
+        where
+        book_id = #{bookId}
+        and valid_state in ('0','1')
+    </update>
+
+    <insert id="insertBookSku" parameterType="java.util.Map">
+        insert into
+        t_sku(`sku_id`,`sku_total`,`sku_sale`,`valid_state`,`sku_create_user_id`,`sku_create_time`,`version`)
+        values
+        (#{skuId},#{skuTotal},#{skuSale},#{validState},#{userId},NOW(),#{version})
+    </insert>
+
+    <insert id="insertBookSkuRl" parameterType="java.util.Map">
+        insert into
+        t_sku_book_relation(`book_id`,`sku_id`,`valid_state`,`create_user_id`,`create_time`)
+        values
+        (#{bookId},#{skuId},#{validState},#{userId},NOW())
+    </insert>
+
+    <insert id="insertBookPicture" parameterType="java.util.Map">
+        insert into
+        t_picture(`book_id`,`picture_id`,`picture_url`,`valid_state`,`create_time`,`create_user_id`)
+        values
+        (#{bookId},#{pictureId},#{pictureUrl},#{validState},NOW(),#{userId})
+    </insert>
+
+    <insert id="insertBigBookPicture" parameterType="java.util.Map">
+        insert into
+        t_book_big_picture(`book_id`,`picture_id`,`picture_url`,`valid_state`,`create_time`,`create_user_id`)
+        values
+        (#{bookId},#{pictureId},#{pictureUrl},#{validState},NOW(),#{userIs})
+    </insert>
+
+    <insert id="insertBookSmall" parameterType="java.util.Map">
+        insert into
+        t_book_image_small(`book_id`,`picture_id`,`picture_url`,`valid_state`,`create_time`,`create_user_id`)
+        values
+        (#{bookId},#{pictureId},#{pictureUrl},#{validState},NOW(),#{userIs})
+    </insert>
+
+    <insert id="insertBookShopRL" parameterType="java.util.Map">
+        insert into
+        t_shop_user_book_relation(`shop_id`,`book_id`,`user_id`,`valid_state`,`create_time`)
+        values
+        (#{shopId},#{bookId},#{userId},#{validState},NOW())
+    </insert>
+
+    <insert id="insertBookCatgRL" parameterType="java.util.Map">
+        insert into
+        t_catg_book_relation(`book_id`,`catg_id`,`valid_state`,`create_user_id`,`create_time`)
+        values
+        (#{bookId},#{catgId},#{validState},#{userId},NOW())
+    </insert>
+    
+    <update id="operateBookValidState" parameterType="java.util.Map">
+        update
+        t_book
+        set
+        valid_state = #{validState},
+        book_modf_user_id = #{userId},
+        book_modf_time = NOW()
+        where
+        book_id in
+        <foreach collection="bookIdList" item="bookId" open="(" close=")" separator=",">
+            #{bookId}
+        </foreach>
+        and valid_state in ('0','1')
+    </update>
+
+    <update id="updatePicValidState" parameterType="java.util.Map">
+        update
+        ${table}
+        set
+        valid_state = #{validState},
+        modf_user_id = #{userId},
+        modf_time = NOW()
+        where
+        book_id in
+        <foreach collection="bookIdList" separator="," item="bookId" open="(" close=")">
+            #{bookId}
+        </foreach>
+        and valid_state = '1'
+    </update>
+
+
+
+
+
+
 </mapper>

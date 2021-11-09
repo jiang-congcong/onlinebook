@@ -100,4 +100,169 @@ public class BookController {
         return result;
     }
 
+    @RequestMapping(method = RequestMethod.POST,value = "/addBook")
+    @ResponseBody
+    @ApiOperation(value = "添加书籍")
+    public Result addBook(@RequestBody Map<String,Object> reqMap) throws Exception {
+        /**
+         * {
+         * "userId":"20211030112600341004",
+         * "shopId":"1",
+         * "name":"三国演义",
+         * "image":"localhost:8080/pic/img03.jpg",
+         * "price":100,
+         * "describe":"简爱描述",
+         * "type":"2",
+         * "imageSmall":[
+         * "localhost:8080/pic/img04.jpg",
+         * "localhost:8080/pic/img05.jpg"
+         * ],
+         * "detail":"localhost:8080/pic/img06.jpg",
+         * "skuNum":100
+         *
+         * }**/
+
+        Result result = new Result();
+        String userId = (String)reqMap.get("userId");
+        String shopId = (String)reqMap.get("shopId");
+        String name = (String)reqMap.get("name");
+        String type = (String)reqMap.get("type");
+        String image = (String)reqMap.get("image");
+        String detail = (String)reqMap.get("detail");
+        if(StrUtil.hasEmpty(shopId)||StrUtil.hasEmpty(userId) ||StrUtil.hasEmpty(name)||null==reqMap.get("price")||StrUtil.hasEmpty(type)||StrUtil.hasEmpty(image)||StrUtil.hasEmpty(detail)){
+            result.setRtnCode("400");
+            result.setRtnMessage("商户id、用户id、书名、价格、类型、图片、详情图片均不能为空");
+            return result;
+        }
+        try{
+            iBookSV.addBook(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("保存书籍失败："+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("保存书籍失败");
+        }
+
+        return result;
+    }
+
+    @RequestMapping(method = RequestMethod.POST,value = "/delBook")
+    @ResponseBody
+    @ApiOperation(value = "删除书籍")
+    public Result delBook(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        String bookId = (String)reqMap.get("bookId");
+        String userId = (String)reqMap.get("userId");
+        if(StrUtil.hasEmpty(bookId)||StrUtil.hasEmpty(userId)){
+            result.setRtnCode("400");
+            result.setRtnMessage("书籍ID、用户ID均不能为空！");
+            return result;
+        }
+        try{
+            List<String> bookIdList = new ArrayList<>();
+            bookIdList.add(bookId);
+            reqMap.put("bookIdList",bookIdList);
+            reqMap.put("validState","2");
+            iBookSV.operateBookValidState(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("删除书籍失败:"+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("删除书籍失败");
+        }
+        return result;
+    }
+
+    @RequestMapping(method = RequestMethod.POST,value = "/offShelf")
+    @ResponseBody
+    @ApiOperation(value = "书籍下架")
+    public Result offShelf(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        List<String> booksId = (List<String>)reqMap.get("booksId");
+        String userId = (String)reqMap.get("userId");
+        if(null==booksId||StrUtil.hasEmpty(userId)){
+            result.setRtnCode("400");
+            result.setRtnMessage("书籍ID、用户ID均不能为空！");
+            return result;
+        }
+        try{
+            reqMap.put("validState","0");
+            reqMap.put("bookIdList",booksId);
+            iBookSV.operateBookValidState(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("下架书籍失败:"+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("下架书籍失败");
+        }
+        return result;
+    }
+
+    @RequestMapping(method = RequestMethod.POST,value = "/onShelf")
+    @ResponseBody
+    @ApiOperation(value = "书籍上架")
+    public Result onShelf(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        List<String> booksId = (List<String>)reqMap.get("booksId");
+        String userId = (String)reqMap.get("userId");
+        if(null==booksId||StrUtil.hasEmpty(userId)){
+            result.setRtnCode("400");
+            result.setRtnMessage("书籍ID、用户ID均不能为空！");
+            return result;
+        }
+        try{
+            reqMap.put("validState","1");
+            reqMap.put("bookIdList",booksId);
+            iBookSV.operateBookValidState(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("上架书籍失败:"+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("上架书籍失败");
+        }
+        return result;
+    }
+
+    @RequestMapping(method = RequestMethod.POST,value = "/updateBook")
+    @ResponseBody
+    @ApiOperation(value = "书籍修改")
+    public Result updateBook(@RequestBody Map<String,Object> reqMap) throws Exception {
+        /**
+         * {
+         * "userId":"20211030112600341004",
+         * "bookId":"20211109204300161032",
+         * "name":"红楼",
+         * "image":"05.jpg",
+         * "price":200,
+         * "describe":"红楼梦",
+         * "detail":"06.jpg",
+         * "imageSmall":[
+         * "07.jpg",
+         * "08.jpg"
+         * ]
+         * }**/
+
+        Result result = new Result();
+        String userId = (String)reqMap.get("userId");
+        String name = (String)reqMap.get("name");
+        String image = (String)reqMap.get("image");
+        String detail = (String)reqMap.get("detail");
+        if(StrUtil.hasEmpty(userId) ||StrUtil.hasEmpty(name)||null==reqMap.get("price")||StrUtil.hasEmpty(image)||StrUtil.hasEmpty(detail)){
+            result.setRtnCode("400");
+            result.setRtnMessage("商户id、用户id、书名、价格、类型、图片、详情图片均不能为空");
+            return result;
+        }
+        try{
+            iBookSV.updateBook(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("更新书籍信息失败"+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("更新书籍信息失败");
+        }
+        return result;
+    }
+
+
+
 }

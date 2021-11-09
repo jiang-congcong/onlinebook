@@ -22,4 +22,26 @@ public interface BookDAO {
 
     List<String> queryBookBigPic(String bookId) throws Exception;
 
+    void addBook(Map<String,Object> reqMap) throws Exception;
+
+    void insertBookSku(Map<String,Object> reqMap) throws Exception;
+
+    void insertBookSkuRl(Map<String,Object> reqMap) throws Exception;
+
+    void insertBookPicture(Map<String,Object> reqMap) throws Exception;
+
+    void insertBigBookPicture(Map<String,Object> reqMap) throws Exception;
+
+    void insertBookSmall(Map<String,Object> reqMap) throws Exception;
+
+    void insertBookShopRL(Map<String,Object> reqMap) throws Exception;
+
+    void insertBookCatgRL(Map<String,Object> reqMap) throws Exception;
+
+    void operateBookValidState(Map<String,Object> reqMap) throws Exception;
+
+    void updatePicValidState(Map<String,Object> reqMap) throws Exception;
+
+    void updateBookInfo(Map<String,Object> reqMap) throws Exception;
+
 }

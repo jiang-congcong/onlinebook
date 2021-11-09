@@ -15,4 +15,10 @@ public interface IBookSV {
 
     Map<String,Object> queryBookDetail(String bookId) throws Exception;
 
+    boolean addBook(Map<String,Object> reqMap) throws Exception;
+
+    void operateBookValidState(Map<String,Object> reqMap) throws Exception;
+
+    void updateBook(Map<String,Object> reqMap) throws Exception;
+
 }

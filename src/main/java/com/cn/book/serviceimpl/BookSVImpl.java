@@ -2,11 +2,14 @@ package com.cn.book.serviceimpl;
 
 import com.cn.book.controller.UserController;
 import com.cn.book.dao.BookDAO;
+import com.cn.book.dao.OrderDAO;
 import com.cn.book.iservice.IBookSV;
+import com.cn.book.utils.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,6 +28,12 @@ public class BookSVImpl implements IBookSV {
 
     @Autowired
     private BookDAO bookDAO;
+
+    @Autowired
+    private CommonUtils commonUtils;
+
+    @Autowired
+    private OrderDAO orderDAO;
 
     @Override
     public Map<String,Object> queryBookList(Map<String,Object> reqMap) throws Exception{
@@ -108,6 +117,166 @@ public class BookSVImpl implements IBookSV {
         return resultMap;
     }
 
+    @Override
+    public boolean addBook(@RequestBody Map<String,Object> reqMap) throws Exception{
+        boolean result = true;
+        try {
+            String bookId = commonUtils.createAllId();//创建书籍id
+            String skuId = commonUtils.createAllId();//库存id
+            Map<String, Object> insertBookMap = new HashMap<>();
+            insertBookMap.put("bookId", bookId);
+            insertBookMap.put("bookName", reqMap.get("name"));
+            insertBookMap.put("bookPrice", reqMap.get("price"));
+            insertBookMap.put("catgId", reqMap.get("type"));
+            insertBookMap.put("describe", reqMap.get("describe"));
+            insertBookMap.put("shopId", reqMap.get("shopId"));
+            insertBookMap.put("shopName", reqMap.get("shopName"));
+            insertBookMap.put("skuId", skuId);
+            insertBookMap.put("validState", "0");
+            insertBookMap.put("userId", reqMap.get("userId"));
+            bookDAO.addBook(insertBookMap);
+            insertBookMap.put("validState", "1");
+            bookDAO.insertBookShopRL(insertBookMap);//书籍与商户关系
+            bookDAO.insertBookCatgRL(insertBookMap);//书籍与类目关系
+            Map<String, Object> insertBookSku = new HashMap<>();
+            insertBookSku.put("skuId", skuId);
+            insertBookSku.put("skuTotal", reqMap.get("skuNum"));
+            insertBookSku.put("skuSale", 0);
+            insertBookSku.put("validState", "1");
+            insertBookSku.put("userId", reqMap.get("userId"));
+            insertBookSku.put("version", 1);
+            bookDAO.insertBookSku(insertBookSku);
+            Map<String, Object> insertSkuRL = new HashMap<>();
+            insertSkuRL.put("bookId", bookId);
+            insertSkuRL.put("skuId", skuId);
+            insertSkuRL.put("validState", "1");
+            insertSkuRL.put("userId", reqMap.get("userId"));
+            bookDAO.insertBookSkuRl(insertSkuRL);
+            Map<String, Object> insertPic = new HashMap<>();
+            String pictureId = commonUtils.createAllId();
+            insertPic.put("bookId", bookId);
+            insertPic.put("pictureId", pictureId);
+            insertPic.put("pictureUrl", reqMap.get("image"));
+            insertPic.put("validState", "1");
+            insertPic.put("userId", reqMap.get("userId"));
+            bookDAO.insertBookPicture(insertPic);
 
+            String bigBookPic = commonUtils.createAllId();
+            insertPic.put("bookId", bigBookPic);
+            insertPic.put("pictureUrl", reqMap.get("detail"));
+            bookDAO.insertBigBookPicture(insertPic);
+
+            List<String> imageSmall = (List<String>) reqMap.get("imageSmall");
+            if (null != imageSmall && imageSmall.size() > 0) {
+                for (String eachImageSmall : imageSmall) {
+                    Map<String, Object> eachInsertPic = new HashMap<>();
+                    String eachPictureId = commonUtils.createAllId();
+                    eachInsertPic.put("bookId", bookId);
+                    eachInsertPic.put("pictureId", eachPictureId);
+                    eachInsertPic.put("pictureUrl", eachImageSmall);
+                    eachInsertPic.put("validState", "1");
+                    eachInsertPic.put("userId", reqMap.get("userId"));
+                    bookDAO.insertBookSmall(eachInsertPic);
+                }
+            }
+        }catch (Exception e){
+            logger.error("保存书籍失败："+e);
+            throw new Exception("保存书籍失败："+e);
+        }
+        return result;
+    }
+
+    @Override
+    public void operateBookValidState(@RequestBody Map<String,Object> reqMap) throws Exception{
+        try {
+            bookDAO.operateBookValidState(reqMap);
+        }catch (Exception e){
+            logger.error("更新书籍状态失败："+e);
+            throw new Exception("更新书籍状态失败："+e);
+        }
+    }
+
+    @Override
+    public void updateBook(@RequestBody Map<String,Object> reqMap) throws Exception{
+        try {
+            String bookId = (String)reqMap.get("bookId");//创建书籍id
+            String skuId = "";//库存id
+            Map<String, Object> insertBookMap = new HashMap<>();
+            insertBookMap.put("bookId", bookId);
+            insertBookMap.put("bookName", reqMap.get("name"));
+            insertBookMap.put("bookPrice", reqMap.get("price"));
+            //insertBookMap.put("catgId", reqMap.get("type"));
+            insertBookMap.put("describe", reqMap.get("describe"));
+//            insertBookMap.put("shopId", reqMap.get("shopId"));
+//            insertBookMap.put("shopName", reqMap.get("shopName"));
+//            insertBookMap.put("skuId", skuId);
+            insertBookMap.put("validState", "0");
+            insertBookMap.put("userId", reqMap.get("userId"));
+            bookDAO.updateBookInfo(insertBookMap);
+            Map<String, Object> insertBookSku = new HashMap<>();
+            List<String> bookIdList = new ArrayList<>();
+            bookIdList.add(bookId);
+            //修改商品信息不允许修改库存，只能通过加减库存按钮修改库存
+//            List<Map<String,Object>> bookSkuList = orderDAO.selectBookSku(bookIdList);
+//            if(null!=bookSkuList&&bookSkuList.size()>0){
+//                skuId = bookSkuList.get(0).get("skuId").toString();
+//                insertBookSku.put("version", bookSkuList.get(0).get("version"));
+//                insertBookSku.put("skuId", skuId);
+//                insertBookSku.put("skuTotal", reqMap.get("skuNum"));
+//                insertBookSku.put("skuSale", 0);
+//                insertBookSku.put("validState", "1");
+//                insertBookSku.put("userId", reqMap.get("userId"));
+//            }
+
+//            Map<String, Object> insertSkuRL = new HashMap<>();
+//            insertSkuRL.put("bookId", bookId);
+//            insertSkuRL.put("skuId", skuId);
+//            insertSkuRL.put("validState", "1");
+//            insertSkuRL.put("userId", reqMap.get("userId"));
+//            bookDAO.insertBookSkuRl(insertSkuRL);
+            Map<String,Object> deletePic = new HashMap<>();
+            deletePic.put("table","t_picture");
+            deletePic.put("validState","0");
+            deletePic.put("userId",reqMap.get("userId"));
+            List<String> bookIdList01 = new ArrayList<>();
+            bookIdList01.add(bookId);
+            deletePic.put("bookIdList",bookIdList01);
+            bookDAO.updatePicValidState(deletePic);
+            Map<String, Object> insertPic = new HashMap<>();
+            String pictureId = commonUtils.createAllId();
+            insertPic.put("bookId", bookId);
+            insertPic.put("pictureId", pictureId);
+            insertPic.put("pictureUrl", reqMap.get("image"));
+            insertPic.put("validState", "1");
+            insertPic.put("userId", reqMap.get("userId"));
+            bookDAO.insertBookPicture(insertPic);
+
+            deletePic.put("table","t_book_big_picture");
+            bookDAO.updatePicValidState(deletePic);
+            String bigBookPic = commonUtils.createAllId();
+            insertPic.put("bookId", bigBookPic);
+            insertPic.put("pictureUrl", reqMap.get("detail"));
+            bookDAO.insertBigBookPicture(insertPic);
+
+            deletePic.put("table","t_book_image_small");
+            bookDAO.updatePicValidState(deletePic);
+            List<String> imageSmall = (List<String>) reqMap.get("imageSmall");
+            if (null != imageSmall && imageSmall.size() > 0) {
+                for (String eachImageSmall : imageSmall) {
+                    Map<String, Object> eachInsertPic = new HashMap<>();
+                    String eachPictureId = commonUtils.createAllId();
+                    eachInsertPic.put("bookId", bookId);
+                    eachInsertPic.put("pictureId", eachPictureId);
+                    eachInsertPic.put("pictureUrl", eachImageSmall);
+                    eachInsertPic.put("validState", "1");
+                    eachInsertPic.put("userId", reqMap.get("userId"));
+                    bookDAO.insertBookSmall(eachInsertPic);
+                }
+            }
+        }catch (Exception e){
+            logger.error("更新书籍信息失败："+e);
+            throw new Exception("更新书籍信息失败："+e);
+        }
+    }
 
 }
