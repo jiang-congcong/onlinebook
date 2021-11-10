@@ -177,4 +177,32 @@ public class OrderController {
         return result;
     }
 
+    @RequestMapping(method = RequestMethod.POST,value = "/updateOrder")
+    @ResponseBody
+    @ApiOperation(value = "更新订单信息")
+    public Result updateOrder(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        String userId = (String)reqMap.get("userId");
+        String orderId = (String)reqMap.get("orderId");
+        String receiverId = (String)reqMap.get("receiverId");
+        String receiverName = (String)reqMap.get("receiverName");
+        String receiverPhone = (String)reqMap.get("receiverPhone");
+        String receiverAddress = (String)reqMap.get("receiverAddress");
+        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(orderId)||StrUtil.hasEmpty(receiverAddress)||StrUtil.hasEmpty(receiverId)||StrUtil.hasEmpty(receiverName)||StrUtil.hasEmpty(receiverPhone)){
+            result.setRtnCode("400");
+            result.setRtnMessage("用户ID、订单ID、收货人ID、收货人姓名、收货人手机号、收货人地址均不能为空");
+            return result;
+        }
+        try{
+            iOrderSV.updateOrderInfo(reqMap);
+            result.setRtnCode("200");
+        }catch (Exception e){
+            logger.error("更新订单信息失败："+e);
+            result.setRtnCode("400");
+            result.setRtnMessage("更新订单信息失败");
+        }
+        return result;
+    }
+
+
 }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cn.book.dao.SkuDAO">
+
+    <update id="operationBookSku" parameterType="java.util.Map">
+        update
+        t_sku
+        set
+        <if test="stockAddNum!=null and stockAddNum>=0">
+            sku_total = sku_total + #{stockAddNum},
+        </if>
+        <if test="stockCutNum!=null and stockCutNum>=0">
+            sku_total = sku_total - #{stockCutNum},
+        </if>
+        sku_modf_user_id = #{userId},
+        sku_modf_time = NOW()
+        where
+        valid_state = '1'
+        and
+        sku_id = (
+            select
+            distinct
+            sku_id
+            from
+            t_sku_book_relation
+            where
+            book_id = #{bookId}
+            and valid_state = '1'
+        )
+    </update>
+    
+    <select id="queryBookSku" parameterType="java.lang.String" resultType="java.util.Map">
+        select
+        t1.sku_total skuTotal,
+        t1.sku_sale skuSale,
+        t1.sku_id skuId
+        from
+        t_sku t1
+        left join t_sku_book_relation t2 on t2.sku_id = t1.sku_id and t2.valid_state = '1'
+        where
+        t2.book_id = #{bookId}
+        and t1.valid_state = '1'
+
+    </select>
+
+</mapper>

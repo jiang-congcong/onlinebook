@@ -153,4 +153,17 @@
         </foreach>
     </update>
 
+    <update id="updateOrderInfo" parameterType="java.util.Map">
+        update
+        t_order
+        set
+        receiver_name = #{receiverName},
+        receiver_phone = #{receiverPhone},
+        receiver_address = #{receiverAddress}
+        where
+        order_id = #{orderId}
+        and user_id = #{userId}
+        and valid_state = '1'
+    </update>
+
 </mapper>

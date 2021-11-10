@@ -17,4 +17,6 @@ public interface IOrderSV {
 
     Map<String,Object> queryUserOrderList(Map<String,Object> reqMap) throws Exception;
 
+    void updateOrderInfo(Map<String,Object> reqMap) throws Exception;
+
 }

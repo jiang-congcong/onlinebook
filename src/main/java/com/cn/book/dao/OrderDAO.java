@@ -28,4 +28,6 @@ public interface OrderDAO {
     List<Map<String,Object>> selectBookSku(@Param("bookIdList") List<String> bookId) throws Exception;
 
     void deleteCartInfo(Map<String,Object> reqMap) throws Exception;
+
+    void updateOrderInfo(Map<String,Object> reqMap) throws Exception;
 }

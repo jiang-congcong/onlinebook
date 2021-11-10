@@ -121,4 +121,16 @@ public class OrderSVImpl implements IOrderSV {
         }
         return resultMap;
     }
+
+    @Override
+    public void updateOrderInfo(Map<String,Object> reqMap) throws Exception{
+        if(null!=reqMap&&reqMap.size()>0){
+            try{
+                orderDAO.updateOrderInfo(reqMap);
+            }catch (Exception e){
+                logger.error("更新订单失败："+e);
+                throw new Exception("更新订单失败："+e);
+            }
+        }
+    }
 }
