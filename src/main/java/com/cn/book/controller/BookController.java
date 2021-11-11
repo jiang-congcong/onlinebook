@@ -1,10 +1,15 @@
 package com.cn.book.controller;
 
+import com.cn.book.config.EsRestClient;
 import com.cn.book.iservice.IBookSV;
 import com.cn.book.utils.Result;
 import com.xiaoleilu.hutool.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +33,9 @@ public class BookController {
 
     @Autowired
     private IBookSV iBookSV;
+
+    @Autowired
+    private EsRestClient esRestClient;
 
     @RequestMapping(method = RequestMethod.POST,value = "/queryList")
     @ResponseBody
@@ -94,9 +102,39 @@ public class BookController {
             result.setRtnCode("400");
             return result;
         }
-        Map<String,Object> queryDetailMap = iBookSV.queryBookDetail(bookId);
+        //先查ES，ES不存在再查数据库
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.from(0);
+        searchSourceBuilder.size(100);
+        searchSourceBuilder.sort("age");
+        TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery("id.keyword", bookId);
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.must(termQueryBuilder);
+        searchSourceBuilder.query(boolQueryBuilder);
+        Map<String, Object> resultMap = esRestClient.queryMessageFromES("book", searchSourceBuilder);
+        List<Map<String,Object>> resultList = (List<Map<String,Object>>)resultMap.get("resultList");
+        if(null!=resultList&&resultList.size()>0){
+            Map<String,Object> putMap = new HashMap<>();
+            putMap.put("data",resultList);
+            result.setResult(putMap);
+        }
+        else {
+            Map<String, Object> queryDetailMap = iBookSV.queryBookDetail(bookId);
+            result.setResult(queryDetailMap);
+            //将详情存入ES
+            String index = "book";
+            String type = "_doc";
+            Map map = new HashMap();
+            map.put("data", queryDetailMap);
+            map.put("id",bookId);
+            try {
+                esRestClient.putMessageToES(index, type, map, bookId);
+            } catch (Exception e) {
+                logger.error("插入ES失败" + e.getMessage());
+                throw new Exception("插入ES失败"+e);
+            }
+        }
         result.setRtnCode("200");
-        result.setResult(queryDetailMap);
         return result;
     }
 
@@ -165,6 +203,10 @@ public class BookController {
             reqMap.put("validState","2");
             iBookSV.operateBookValidState(reqMap);
             result.setRtnCode("200");
+            //删除ES书籍数据
+            for(String eachBookId:bookIdList) {
+                esRestClient.deleteMessageFromES("book", "_doc", eachBookId);
+            }
         }catch (Exception e){
             logger.error("删除书籍失败:"+e);
             result.setRtnCode("400");
@@ -255,6 +297,22 @@ public class BookController {
         try{
             iBookSV.updateBook(reqMap);
             result.setRtnCode("200");
+            //同步修改ES书籍信息
+            String bookId = reqMap.get("bookId").toString();
+            Map<String, Object> queryDetailMap = iBookSV.queryBookDetail(bookId); //先查详情，再存ES
+            result.setResult(queryDetailMap);
+            //将详情存入ES
+            String index = "book";
+            String type = "_doc";
+            Map map = new HashMap();
+            map.put("data", queryDetailMap);
+            map.put("id", bookId);
+            try {
+                esRestClient.putMessageToES(index, type, map, bookId);
+            } catch (Exception e) {
+                logger.error("插入ES失败" + e.getMessage());
+                throw new Exception("插入ES失败"+e);
+            }
         }catch (Exception e){
             logger.error("更新书籍信息失败"+e);
             result.setRtnCode("400");
