@@ -2,6 +2,7 @@ package com.cn.book.controller;
 
 import com.cn.book.config.EsRestClient;
 import com.cn.book.iservice.IBookSV;
+import com.cn.book.utils.CommonUtils;
 import com.cn.book.utils.Result;
 import com.xiaoleilu.hutool.util.StrUtil;
 import io.swagger.annotations.Api;
@@ -36,6 +37,9 @@ public class BookController {
 
     @Autowired
     private EsRestClient esRestClient;
+
+    @Autowired
+    private CommonUtils commonUtils;
 
     @RequestMapping(method = RequestMethod.POST,value = "/queryList")
     @ResponseBody
@@ -113,6 +117,27 @@ public class BookController {
         searchSourceBuilder.query(boolQueryBuilder);
         Map<String, Object> resultMap = esRestClient.queryMessageFromES("book", searchSourceBuilder);
         List<Map<String,Object>> resultList = (List<Map<String,Object>>)resultMap.get("resultList");
+        for(Map<String,Object>eachMap:resultList){
+            String image = (String)eachMap.get("image");
+            if(!StrUtil.hasEmpty(image)) {
+                String base64Str = commonUtils.dealImageTobase64(image);
+                eachMap.put("image",base64Str);
+            }
+            String detail = (String)eachMap.get("detail");
+            if(!StrUtil.hasEmpty(detail)) {
+                String base64Str = commonUtils.dealImageTobase64(detail);
+                eachMap.put("detail",base64Str);
+            }
+            List<String> smallList = (List<String>)eachMap.get("imageSmall");
+            List<String> base64StrList = new ArrayList<>();
+            if(null!=smallList&&smallList.size()>0){
+                for(String eachStr:smallList){
+                    String smallStr = commonUtils.dealImageTobase64(eachStr);
+                    base64StrList.add(smallStr);
+                }
+                reqMap.put("imageSmall",base64StrList);
+            }
+        }
         if(null!=resultList&&resultList.size()>0){
             Map<String,Object> putMap = new HashMap<>();
             putMap.put("data",resultList);
@@ -120,7 +145,7 @@ public class BookController {
         }
         else {
             Map<String, Object> queryDetailMap = iBookSV.queryBookDetail(bookId);
-            result.setResult(queryDetailMap);
+//            result.setResult(queryDetailMap);
             //将详情存入ES
             String index = "book";
             String type = "_doc";
@@ -133,6 +158,28 @@ public class BookController {
                 logger.error("插入ES失败" + e.getMessage());
                 throw new Exception("插入ES失败"+e);
             }
+
+            String image = (String)queryDetailMap.get("image");
+            if(!StrUtil.hasEmpty(image)) {
+                String base64Str = commonUtils.dealImageTobase64(image);
+                queryDetailMap.put("image",base64Str);
+            }
+            String detail = (String)queryDetailMap.get("detail");
+            if(!StrUtil.hasEmpty(detail)) {
+                String base64Str = commonUtils.dealImageTobase64(detail);
+                queryDetailMap.put("detail",base64Str);
+            }
+            List<String> smallList = (List<String>)queryDetailMap.get("imageSmall");
+            List<String> base64StrList = new ArrayList<>();
+            if(null!=smallList&&smallList.size()>0){
+                for(String eachStr:smallList){
+                    String smallStr = commonUtils.dealImageTobase64(eachStr);
+                    base64StrList.add(smallStr);
+                }
+                queryDetailMap.put("imageSmall",base64StrList);
+            }
+
+            result.setResult(queryDetailMap);
         }
         result.setRtnCode("200");
         return result;
@@ -171,6 +218,20 @@ public class BookController {
             result.setRtnCode("400");
             result.setRtnMessage("商户id、用户id、书名、价格、类型、图片、详情图片均不能为空");
             return result;
+        }
+        //base64转图片地址
+        String imagePath = commonUtils.dealbase64ToImagePath(image);
+        reqMap.put("image",imagePath);
+        String detailPath = commonUtils.dealbase64ToImagePath(detail);
+        reqMap.put("detail",detailPath);
+        List<String> imageSmall = (List<String>) reqMap.get("imageSmall");
+        List<String> imageSmallPath = new ArrayList<>();
+        if(null!=imageSmall&&imageSmall.size()>0){
+            for(String eachStr:imageSmall){
+                String smallPath = commonUtils.dealbase64ToImagePath(eachStr);
+                imageSmallPath.add(smallPath);
+            }
+            reqMap.put("imageSmall",imageSmallPath);
         }
         try{
             iBookSV.addBook(reqMap);
@@ -293,6 +354,20 @@ public class BookController {
             result.setRtnCode("400");
             result.setRtnMessage("商户id、用户id、书名、价格、类型、图片、详情图片均不能为空");
             return result;
+        }
+        //base64转图片地址
+        String imagePath = commonUtils.dealbase64ToImagePath(image);
+        reqMap.put("image",imagePath);
+        String detailPath = commonUtils.dealbase64ToImagePath(detail);
+        reqMap.put("detail",detailPath);
+        List<String> imageSmall = (List<String>) reqMap.get("imageSmall");
+        List<String> imageSmallPath = new ArrayList<>();
+        if(null!=imageSmall&&imageSmall.size()>0){
+            for(String eachStr:imageSmall){
+                String smallPath = commonUtils.dealbase64ToImagePath(eachStr);
+                imageSmallPath.add(smallPath);
+            }
+            reqMap.put("imageSmall",imageSmallPath);
         }
         try{
             iBookSV.updateBook(reqMap);

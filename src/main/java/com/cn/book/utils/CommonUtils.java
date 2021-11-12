@@ -1,14 +1,15 @@
 package com.cn.book.utils;
 
+import com.cn.book.controller.UserController;
 import com.xiaoleilu.hutool.lang.Base64;
 import com.xiaoleilu.hutool.util.StrUtil;
 import org.apache.shiro.crypto.hash.Md5Hash;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -22,6 +23,8 @@ public class CommonUtils {
 
     @Autowired
     private RedisOperationUtils redisOperationUtils;
+
+    public static Logger logger = LoggerFactory.getLogger(CommonUtils.class);
 
     //MD5+加盐 对密码进行加密
     public String passwordMD5HashSalt(String password, String salt, int hashTime){
@@ -87,10 +90,58 @@ public class CommonUtils {
         }
 
         // 对字节数组进行Base64编码，得到Base64编码的字符串
-//        BASE64Encoder encoder = new BASE64Encoder();
-//        String base64Str = encoder.encode(data);
         base64Str = Base64.encode(data);
+        System.out.println(base64Str);
         return base64Str;
+    }
+
+    //base64转图片
+    public void base64ToImage(String base64Str,String imagePath) throws Exception{
+        if(StrUtil.hasEmpty(base64Str)||StrUtil.hasEmpty(imagePath)){
+            logger.error("base64字符串和转图片地址均不能为空!");
+            throw new Exception("base64字符串和转图片地址均不能为空！");
+        }
+
+        try {
+            // Base64解码
+            byte[] bytes = Base64.decode(base64Str);
+            for (int i = 0; i < bytes.length; ++i) {
+                if (bytes[i] < 0) {// 调整异常数据
+                    bytes[i] += 256;
+                }
+            }
+            // 生成jpeg图片
+            OutputStream out = new FileOutputStream(imagePath);
+            out.write(bytes);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            logger.error("生成图片失败："+e);
+            throw new Exception("生成图片失败："+e);
+        }
+
+    }
+
+    public String dealbase64ToImagePath(String base64Str) throws Exception{
+        String rtnImagePath = "";
+        String getId = createAllId();
+        rtnImagePath = "C:\\Program Files\\book\\image\\"+getId+".png";
+        try{
+            base64ToImage(base64Str,rtnImagePath);
+        }catch (Exception e){
+            logger.error("base64转换图片失败"+e);
+            rtnImagePath = "";
+        }
+        return rtnImagePath;
+    }
+
+    public String dealImageTobase64(String imagePath) throws Exception{
+        String rtnStr = "";
+        if(!StrUtil.hasEmpty(imagePath)){
+            String base64Str = imageToBase64(imagePath);
+            rtnStr = "data:image/jpeg;base64,"+base64Str;
+        }
+        return rtnStr;
     }
 
 

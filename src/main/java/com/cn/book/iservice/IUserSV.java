@@ -1,5 +1,6 @@
 package com.cn.book.iservice;
 
+import org.graalvm.compiler.hotspot.phases.OnStackReplacementPhase;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
@@ -18,4 +19,7 @@ public interface IUserSV {
     boolean checkUsernameIsRegister(String username) throws Exception;
 
     boolean updateUserInfo(Map<String,Object> reqMap) throws Exception;
+
+    Map<String, Object> queryUserInfo(String userId) throws Exception;
+
 }

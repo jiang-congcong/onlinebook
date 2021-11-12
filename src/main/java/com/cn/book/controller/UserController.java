@@ -103,6 +103,17 @@ public class UserController {
                     result.setRtnCode("200");
                     Map<String,Object> resultMap = new HashMap<>();
                     String token = commonUtils.createAndUpdateToken(userId);
+                    try {
+                        Map<String, Object> userInfo = iUserSV.queryUserInfo(userId);
+                        if(null!=userInfo&&userInfo.size()>0){
+                            String image = (String)userInfo.get("userImage");
+                            image = commonUtils.dealImageTobase64(image);
+                            resultMap.put("username",userInfo.get("username"));
+                            resultMap.put("userImage",image);
+                        }
+                    }catch (Exception e){
+                        logger.error("查询用户信息失败"+e);
+                    }
                     resultMap.put("userId",userId);
                     resultMap.put("token",token);
                     result.setRtnMessage("登陆成功！");
@@ -132,6 +143,17 @@ public class UserController {
             int overTime = 24*60*60;
             redisOperationUtils.set(token,userId,overTime);
             Map<String,Object> resultMap = new HashMap<>();
+            try {
+                Map<String, Object> userInfo = iUserSV.queryUserInfo(userId);
+                if(null!=userInfo&&userInfo.size()>0){
+                    String image = (String)userInfo.get("userImage");
+                    image = commonUtils.dealImageTobase64(image);
+                    resultMap.put("username",userInfo.get("username"));
+                    resultMap.put("userImage",image);
+                }
+            }catch (Exception e){
+                logger.error("查询用户信息失败"+e);
+            }
             resultMap.put("token",token);
             resultMap.put("userId",userId);
             result.setResult(resultMap);
@@ -176,6 +198,9 @@ public class UserController {
             result.setRtnMessage("用户id或图片地址不能为空！");
             return result;
         }
+        //图片转路径
+        String imagePath = commonUtils.dealbase64ToImagePath(userImage);
+        reqMap.put("userImage",imagePath);
         boolean isUpdateSuccess = iUserSV.updateUserInfo(reqMap);
         if(isUpdateSuccess){
             result.setRtnMessage("更新用户头像成功！");

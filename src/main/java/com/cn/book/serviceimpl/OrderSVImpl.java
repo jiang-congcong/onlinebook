@@ -3,6 +3,7 @@ package com.cn.book.serviceimpl;
 import com.cn.book.controller.CartController;
 import com.cn.book.dao.OrderDAO;
 import com.cn.book.iservice.IOrderSV;
+import com.cn.book.utils.CommonUtils;
 import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class OrderSVImpl implements IOrderSV {
 
     @Autowired
     private OrderDAO orderDAO;
+
+    @Autowired
+    private CommonUtils commonUtils;
 
     @Override
     public boolean insertOrderInfo(List<Map<String,Object>> reqList) throws Exception{
@@ -86,6 +90,9 @@ public class OrderSVImpl implements IOrderSV {
             List<Map<String,Object>> queryList = orderDAO.queryOrderInfo(reqMap);
             if(null!=queryList&&queryList.size()>0){
                 resultMap = queryList.get(0);
+                String image = (String)resultMap.get("image");
+                image = commonUtils.dealImageTobase64(image);
+                resultMap.put("image",image);
                 resultMap.put("describe",resultMap.get("introduce"));
                 double d1 = (Double) resultMap.get("skuTotal");//原始库存总量
                 double d2 = (Double) resultMap.get("skuSale");//销量
@@ -117,6 +124,13 @@ public class OrderSVImpl implements IOrderSV {
         resultMap.put("data","");
         if(total>0){
             List<Map<String,Object>> resultList = orderDAO.queryUserOrderList(reqMap);
+            if(null!=resultList&&resultList.size()>0){
+                for(Map<String,Object> eachMap:resultList){
+                    String image = (String)eachMap.get("image");
+                    image = commonUtils.dealImageTobase64(image);
+                    eachMap.put("image",image);
+                }
+            }
             resultMap.put("data",resultList);
         }
         return resultMap;

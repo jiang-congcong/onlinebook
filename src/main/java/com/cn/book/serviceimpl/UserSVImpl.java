@@ -72,4 +72,17 @@ public class UserSVImpl implements IUserSV {
         }
         return result;
     }
+
+    @Override
+    public Map<String, Object> queryUserInfo(String userId) throws Exception{
+        Map<String, Object> result = new HashMap<>();
+        if(!StrUtil.hasEmpty(userId)) {
+            try {
+                result = userDAO.queryUserInfo(userId);
+            } catch (Exception e) {
+                logger.error("查询用户信息失败：" + e);
+            }
+        }
+        return result;
+    }
 }

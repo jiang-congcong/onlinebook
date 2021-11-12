@@ -5,6 +5,7 @@ import com.cn.book.dao.BookDAO;
 import com.cn.book.dao.OrderDAO;
 import com.cn.book.iservice.IBookSV;
 import com.cn.book.utils.CommonUtils;
+import com.xiaoleilu.hutool.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,12 @@ public class BookSVImpl implements IBookSV {
                         double d1 = (Double) eachMap.get("skuTotal");//原始库存总量
                         double d2 = (Double) eachMap.get("skuSale");//销量
                         eachMap.put("skuNum",d1-d2); //剩余库存
+                        //图片转base64
+                        String image = (String)eachMap.get("image");
+                        if(!StrUtil.hasEmpty(image)) {
+                            String base64Str = commonUtils.dealImageTobase64(image);
+                            eachMap.put("image",base64Str);
+                        }
                     }
                     resultList = midList;
                 }
@@ -73,6 +80,14 @@ public class BookSVImpl implements IBookSV {
                 reqMap.put("catgId", catgId);
                 List<Map<String, Object>> queryBookList = bookDAO.queryBookList(reqMap);
                 if(null!=queryBookList&&queryBookList.size()>0){
+                    for(Map<String,Object> eachInfoMap:queryBookList){
+                        //图片转base64
+                        String image = (String)eachInfoMap.get("image");
+                        if(!StrUtil.hasEmpty(image)) {
+                            String base64Str = commonUtils.dealImageTobase64(image);
+                            eachInfoMap.put("image",base64Str);
+                        }
+                    }
                     Map<String,Object> eachResultMap = new HashMap<>();
                     eachResultMap.put("type",eachMap.get("catgName"));
                     eachResultMap.put("data",queryBookList);

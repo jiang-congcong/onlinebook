@@ -42,6 +42,9 @@ public class CartSVImpl implements ICartSV {
                 try {
                     resultList = cartDAO.queryCartListByUserId(reqMap);
                     for (Map<String, Object> eachMap : resultList) {
+                        String image = (String)eachMap.get("image");
+                        image = commonUtils.dealImageTobase64(image);
+                        eachMap.put("image",image);
                         eachMap.put("describe", eachMap.get("introduce"));
                         double d1 = (Double) eachMap.get("skuTotal");//原始库存总量
                         double d2 = (Double) eachMap.get("skuSale");//销量
