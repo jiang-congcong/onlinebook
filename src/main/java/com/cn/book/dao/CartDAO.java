@@ -22,4 +22,6 @@ public interface CartDAO {
     void deleteCartBook(Map<String,Object> reqMap);
     String selectCartBookNum(String cartId);
 
+    List<String> queryCartId(Map<String,Object> reqMap);
+
 }

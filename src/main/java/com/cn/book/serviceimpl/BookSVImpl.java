@@ -6,6 +6,7 @@ import com.cn.book.dao.OrderDAO;
 import com.cn.book.iservice.IBookSV;
 import com.cn.book.utils.CommonUtils;
 import com.xiaoleilu.hutool.util.StrUtil;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,10 +48,32 @@ public class BookSVImpl implements IBookSV {
                 List<Map<String, Object>> midList = bookDAO.queryBookList(reqMap);
                 if (null != midList && midList.size() > 0) {
                     for(Map<String,Object> eachMap:midList){
+                        String validState = eachMap.get("validState").toString();
+                        if("1".equals(validState)){
+                            eachMap.put("isSale",true);
+                        }
+                        else{
+                            eachMap.put("isSale",false);
+                        }
+                        String bookId = eachMap.get("bookId").toString();
+                        List<String> bookImageSmall = bookDAO.queryBookImageSmall(bookId);
+                        List<String> bookBigImg = bookDAO.queryBookBigPic(bookId);
+                        if(null!=bookImageSmall&&bookImageSmall.size()>0) {
+                            List<String> resultListStr = new ArrayList<>();
+                            for(String eachStr:bookImageSmall) {
+                                String base64Str = commonUtils.dealImageTobase64(eachStr);
+                                resultListStr.add(base64Str);
+                            }
+                            eachMap.put("imageSmall",resultListStr);
+                        }
+                        if(null!=bookBigImg&&bookBigImg.size()>0) {
+                            String base64Str = commonUtils.dealImageTobase64(bookBigImg.get(0));
+                            eachMap.put("detail",base64Str);
+                        }
                         eachMap.put("describe",eachMap.get("introduce"));
-                        double d1 = (Double) eachMap.get("skuTotal");//原始库存总量
-                        double d2 = (Double) eachMap.get("skuSale");//销量
-                        eachMap.put("skuNum",d1-d2); //剩余库存
+                        double d1 = (Double) eachMap.get("stockTotal");//原始库存总量
+                        double d2 = (Double) eachMap.get("stockSale");//销量
+                        eachMap.put("stockNum",d1-d2); //剩余库存
                         //图片转base64
                         String image = (String)eachMap.get("image");
                         if(!StrUtil.hasEmpty(image)) {
@@ -78,6 +101,7 @@ public class BookSVImpl implements IBookSV {
                 reqMap.put("start", 0);
                 reqMap.put("limit", 4);
                 reqMap.put("catgId", catgId);
+                reqMap.put("validState","1");
                 List<Map<String, Object>> queryBookList = bookDAO.queryBookList(reqMap);
                 if(null!=queryBookList&&queryBookList.size()>0){
                     for(Map<String,Object> eachInfoMap:queryBookList){
@@ -105,6 +129,7 @@ public class BookSVImpl implements IBookSV {
         reqMap.put("bookId",bookId);
         reqMap.put("start", 0);
         reqMap.put("limit", 10);
+        reqMap.put("validState","1");
         List<Map<String, Object>> queryBookList = new ArrayList<>();
         try {
             queryBookList = bookDAO.queryBookList(reqMap);
@@ -113,21 +138,33 @@ public class BookSVImpl implements IBookSV {
         }
         if(null!=queryBookList&&queryBookList.size()>0){
             resultMap = queryBookList.get(0);
+            resultMap.put("describe",resultMap.get("introduce"));
+//            String image = (String)resultMap.get("image");
+//            if(!StrUtil.hasEmpty(image)) {
+//                String base64Str = commonUtils.dealImageTobase64(image);
+//                resultMap.put("image",base64Str);
+//            }
             List<String> bookImageSmall = new ArrayList<>();
             List<String> bookBigImg = new ArrayList<>();
             try {
                 bookImageSmall = bookDAO.queryBookImageSmall(bookId);
                 bookBigImg = bookDAO.queryBookBigPic(bookId);
+                if(null!=bookImageSmall&&bookImageSmall.size()>0){
+                    resultMap.put("imageSmall",bookImageSmall);
+                }
+                if(null!=bookBigImg&&bookBigImg.size()>0){
+                    resultMap.put("detail",bookBigImg.get(0));
+                }
             }catch (Exception e){
                 logger.error("查询图书图片组合或大图失败");
             }
-            resultMap.put("imageSmall",bookImageSmall);
-            if(null!=bookBigImg&&bookBigImg.size()>0){
-                resultMap.put("detail",bookBigImg.get(0));
-            }
-            else{
-                resultMap.put("detail","");
-            }
+//            resultMap.put("imageSmall",bookImageSmall);
+//            if(null!=bookBigImg&&bookBigImg.size()>0){
+//                resultMap.put("detail",bookBigImg.get(0));
+//            }
+//            else{
+//                resultMap.put("detail","");
+//            }
         }
         return resultMap;
     }
@@ -142,7 +179,7 @@ public class BookSVImpl implements IBookSV {
             insertBookMap.put("bookId", bookId);
             insertBookMap.put("bookName", reqMap.get("name"));
             insertBookMap.put("bookPrice", reqMap.get("price"));
-            insertBookMap.put("catgId", reqMap.get("type"));
+            insertBookMap.put("catgId", reqMap.get("catgId"));
             insertBookMap.put("describe", reqMap.get("describe"));
             insertBookMap.put("shopId", reqMap.get("shopId"));
             insertBookMap.put("shopName", reqMap.get("shopName"));
@@ -155,7 +192,7 @@ public class BookSVImpl implements IBookSV {
             bookDAO.insertBookCatgRL(insertBookMap);//书籍与类目关系
             Map<String, Object> insertBookSku = new HashMap<>();
             insertBookSku.put("skuId", skuId);
-            insertBookSku.put("skuTotal", reqMap.get("skuNum"));
+            insertBookSku.put("skuTotal", 0);
             insertBookSku.put("skuSale", 0);
             insertBookSku.put("validState", "1");
             insertBookSku.put("userId", reqMap.get("userId"));
@@ -177,7 +214,7 @@ public class BookSVImpl implements IBookSV {
             bookDAO.insertBookPicture(insertPic);
 
             String bigBookPic = commonUtils.createAllId();
-            insertPic.put("bookId", bigBookPic);
+            insertPic.put("pictureId", bigBookPic);
             insertPic.put("pictureUrl", reqMap.get("detail"));
             bookDAO.insertBigBookPicture(insertPic);
 
@@ -204,7 +241,8 @@ public class BookSVImpl implements IBookSV {
     @Override
     public void operateBookValidState(@RequestBody Map<String,Object> reqMap) throws Exception{
         try {
-            bookDAO.operateBookValidState(reqMap);
+            List<String> mcdsIdList = (List<String>)reqMap.get("mcdsIdList");
+            bookDAO.operateBookValidState(reqMap,mcdsIdList);
         }catch (Exception e){
             logger.error("更新书籍状态失败："+e);
             throw new Exception("更新书籍状态失败："+e);
@@ -292,6 +330,16 @@ public class BookSVImpl implements IBookSV {
             logger.error("更新书籍信息失败："+e);
             throw new Exception("更新书籍信息失败："+e);
         }
+    }
+
+    public List<Map<String, Object>> queryAllCatg() throws Exception{
+        List<Map<String, Object>> list = new ArrayList<>();
+        try {
+            list = bookDAO.queryAllCatg();
+        }catch (Exception e){
+            logger.error("查询类型失败"+e);
+        }
+        return list;
     }
 
 }

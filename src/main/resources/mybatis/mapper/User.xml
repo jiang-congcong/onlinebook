@@ -8,7 +8,7 @@
         insert into
         t_user(t_username,t_password,t_salt,t_user_id,t_phone_num,valid_state)
         values
-        (#{username},#{password},#{salt},#{userId},#{phoneNum},#{validState})
+        (#{username},#{password},#{salt},#{userId},#{phone},#{validState})
     </insert>
 
     <select id="queryUserPassword" parameterType="java.lang.String" resultType="java.util.Map">
@@ -43,18 +43,36 @@
         and `valid_state` = '1'
     </update>
 
+    <insert id="insertUserProfilePic" parameterType="java.util.Map">
+        insert into
+        t_user_profile_picture(`t_user_id`,`t_picture_id`,`valid_state`,`t_picture_url`,`t_create_time`,`t_create_user_id`)
+        values
+        (#{userId},#{pictureId},#{validState},#{userImage},NOW(),#{userId})
+    </insert>
+
     <select id="queryUserInfo" parameterType="java.lang.String" resultType="java.util.Map">
         select
         t1.t_user_id userId,
         t1.t_username username,
         t1.t_phone_num phoneNum,
-        t2.t_picture_url userImage
+        t2.t_picture_url userImage,
+        t3.shop_id shopId
         from
         t_user t1
-        left join t_user_profile_phone t2 on t1.user_id = t2.user_id and t2.valid_state = '1'
+        left join t_user_profile_picture t2 on t1.t_user_id = t2.t_user_id and t2.valid_state = '1'
+        left join t_shop t3 on t1.t_user_id = t3.user_id and t3.valid_state = '1'
         where
         t1.t_user_id = #{userId}
         and t1.valid_state = '1'
         </select>
+
+    <update id="updateUsername" parameterType="java.util.Map">
+        update
+        t_user
+        set t_username = #{username}
+        where
+        t_user_id = #{userId}
+        and valid_state = '1'
+    </update>
 
 </mapper>

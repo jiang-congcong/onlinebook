@@ -45,7 +45,7 @@ public class UserController {
         Result result = new Result();
         String username = (String)reqMap.get("username");
         String password = (String)reqMap.get("password");
-        String phoneNum = (String)reqMap.get("phoneNum");
+        String phoneNum = (String)reqMap.get("phone");
         if(StrUtil.hasEmpty(username)||StrUtil.hasEmpty(password)||StrUtil.hasEmpty(phoneNum)){
             result.setRtnCode("400");
             result.setRtnMessage("用户名或密码或手机号不能为空！");
@@ -62,11 +62,16 @@ public class UserController {
             String userId = commonUtils.createAllId(); //生成用户id
             String salt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
             String md5Password = commonUtils.passwordMD5HashSalt(password,salt,hashTime);
+            String pictureId = commonUtils.createAllId();//头像图片id
+            String defaultheadImageUrl = "C:\\Program Files\\book\\image\\defaultHeadImage.png";
+            reqMap.put("pictureId",pictureId);
+            reqMap.put("userImage",defaultheadImageUrl);
             reqMap.put("password",md5Password);
             reqMap.put("salt",salt);
             reqMap.put("userId",userId);
             reqMap.put("validState","1");
             iUserSV.register(reqMap);
+
             String token = commonUtils.createAndUpdateToken(userId); //生成token，放入redis中，并返回给前端
             Map<String,Object> resultMap = new HashMap<>();
             resultMap.put("token",token);
@@ -110,12 +115,14 @@ public class UserController {
                             image = commonUtils.dealImageTobase64(image);
                             resultMap.put("username",userInfo.get("username"));
                             resultMap.put("userImage",image);
+                            resultMap.put("shopId",userInfo.get("shopId"));
                         }
                     }catch (Exception e){
                         logger.error("查询用户信息失败"+e);
                     }
                     resultMap.put("userId",userId);
                     resultMap.put("token",token);
+                    resultMap.put("shopId","1");
                     result.setRtnMessage("登陆成功！");
                     result.setResult(resultMap);
                 }
@@ -145,17 +152,24 @@ public class UserController {
             Map<String,Object> resultMap = new HashMap<>();
             try {
                 Map<String, Object> userInfo = iUserSV.queryUserInfo(userId);
+                resultMap.put("userImage","");
                 if(null!=userInfo&&userInfo.size()>0){
-                    String image = (String)userInfo.get("userImage");
-                    image = commonUtils.dealImageTobase64(image);
+//                    String image = (String)userInfo.get("userImage");
+//                    image = commonUtils.dealImageTobase64(image);
                     resultMap.put("username",userInfo.get("username"));
-                    resultMap.put("userImage",image);
+                    String userImage = (String)userInfo.get("userImage");
+                    if(!StrUtil.hasEmpty(userImage)) {
+                        userImage = commonUtils.dealImageTobase64(userInfo.get("userImage").toString());
+                        resultMap.put("userImage", userImage);
+                    }
+                    resultMap.put("shopId",userInfo.get("shopId"));
                 }
             }catch (Exception e){
                 logger.error("查询用户信息失败"+e);
             }
             resultMap.put("token",token);
             resultMap.put("userId",userId);
+            //resultMap.put("shopId","1");
             result.setResult(resultMap);
             result.setRtnCode("200");
         }
@@ -191,17 +205,20 @@ public class UserController {
     public Result updateUserInfo(@RequestBody Map<String,Object> reqMap) throws Exception {
         Result result = new Result();
         String userId = (String)reqMap.get("userId");
-        String username = (String)reqMap.get("username");
+        //String username = (String)reqMap.get("username");
         String userImage = (String)reqMap.get("userImage");
-        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(username)||StrUtil.hasEmpty(userImage)){
+        if(StrUtil.hasEmpty(userId)){
             result.setRtnCode("400");
-            result.setRtnMessage("用户id或图片地址不能为空！");
+            result.setRtnMessage("用户id不能为空！");
             return result;
         }
         //图片转路径
-        String imagePath = commonUtils.dealbase64ToImagePath(userImage);
-        reqMap.put("userImage",imagePath);
-        boolean isUpdateSuccess = iUserSV.updateUserInfo(reqMap);
+        boolean isUpdateSuccess = true;
+        if(!StrUtil.hasEmpty(userImage)) {
+            String imagePath = commonUtils.dealbase64ToImagePath(userImage);
+            reqMap.put("userImage", imagePath);
+        }
+        isUpdateSuccess = iUserSV.updateUserInfo(reqMap);
         if(isUpdateSuccess){
             result.setRtnMessage("更新用户头像成功！");
             result.setRtnCode("200");

@@ -126,6 +126,7 @@ public class CommonUtils {
         String rtnImagePath = "";
         String getId = createAllId();
         rtnImagePath = "C:\\Program Files\\book\\image\\"+getId+".png";
+        base64Str = base64Str.split(",")[1];
         try{
             base64ToImage(base64Str,rtnImagePath);
         }catch (Exception e){

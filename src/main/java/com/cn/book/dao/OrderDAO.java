@@ -17,7 +17,7 @@ public interface OrderDAO {
 
     List<Map<String,Object>> queryOrderInfo(Map<String,Object> reqMap) throws Exception;
 
-    void updateOrderState(Map<String,Object> reqMap) throws Exception;
+    void updateOrderState(@Param("reqMap")Map<String,Object> reqMap,@Param("orderIdList")List<String> orderIdList) throws Exception;
 
     List<Map<String,Object>> queryUserOrderList(Map<String,Object> reqMap) throws Exception;
 

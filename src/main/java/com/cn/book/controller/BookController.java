@@ -65,8 +65,10 @@ public class BookController {
                     reqMap.put("order","ASC");
                 }
             }
+            reqMap.put("validState","1");
             try {
                 Map<String,Object> queryResultMap = iBookSV.queryBookList(reqMap);
+                queryResultMap.put("data",queryResultMap.get("bookList"));
                 result.setRtnCode("200");
                 result.setResult(queryResultMap);
             }catch (Exception e){
@@ -138,6 +140,7 @@ public class BookController {
                 reqMap.put("imageSmall",base64StrList);
             }
         }
+        resultList = null;
         if(null!=resultList&&resultList.size()>0){
             Map<String,Object> putMap = new HashMap<>();
             putMap.put("data",resultList);
@@ -211,7 +214,7 @@ public class BookController {
         String userId = (String)reqMap.get("userId");
         String shopId = (String)reqMap.get("shopId");
         String name = (String)reqMap.get("name");
-        String type = (String)reqMap.get("type");
+        String type = (String)reqMap.get("catgId");
         String image = (String)reqMap.get("image");
         String detail = (String)reqMap.get("detail");
         if(StrUtil.hasEmpty(shopId)||StrUtil.hasEmpty(userId) ||StrUtil.hasEmpty(name)||null==reqMap.get("price")||StrUtil.hasEmpty(type)||StrUtil.hasEmpty(image)||StrUtil.hasEmpty(detail)){
@@ -252,9 +255,9 @@ public class BookController {
         Result result = new Result();
         String bookId = (String)reqMap.get("bookId");
         String userId = (String)reqMap.get("userId");
-        if(StrUtil.hasEmpty(bookId)||StrUtil.hasEmpty(userId)){
+        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(bookId)){
             result.setRtnCode("400");
-            result.setRtnMessage("书籍ID、用户ID均不能为空！");
+            result.setRtnMessage("用户ID、书籍ID均不能为空！");
             return result;
         }
         try{
@@ -315,7 +318,7 @@ public class BookController {
         }
         try{
             reqMap.put("validState","1");
-            reqMap.put("bookIdList",booksId);
+            reqMap.put("mcdsIdList",booksId);
             iBookSV.operateBookValidState(reqMap);
             result.setRtnCode("200");
         }catch (Exception e){
@@ -393,6 +396,26 @@ public class BookController {
             result.setRtnCode("400");
             result.setRtnMessage("更新书籍信息失败");
         }
+        return result;
+    }
+
+    @RequestMapping(method = RequestMethod.POST,value = "/bookType")
+    @ResponseBody
+    @ApiOperation(value = "查询书籍类型")
+    public Result bookType(@RequestBody Map<String,Object> reqMap) throws Exception {
+        Result result = new Result();
+        result.setRtnCode("200");
+        Map<String,Object> resultMap = new HashMap<>();
+        List<String> list = new ArrayList<>();
+        List<Map<String,Object>> data = new ArrayList<>();
+        try {
+            data = iBookSV.queryAllCatg();
+            resultMap.put("total",data.size());
+        }catch (Exception e){
+            logger.error("查询书籍所有类型失败："+e);
+        }
+        resultMap.put("data",data);
+        result.setResult(resultMap);
         return result;
     }
 

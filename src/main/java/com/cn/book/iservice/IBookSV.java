@@ -1,5 +1,6 @@
 package com.cn.book.iservice;
 
+
 import java.util.List;
 import java.util.Map;
 
@@ -20,5 +21,7 @@ public interface IBookSV {
     void operateBookValidState(Map<String,Object> reqMap) throws Exception;
 
     void updateBook(Map<String,Object> reqMap) throws Exception;
+
+    List<Map<String, Object>> queryAllCatg() throws Exception;
 
 }

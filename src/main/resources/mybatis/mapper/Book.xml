@@ -12,9 +12,10 @@
         t1.book_price price,
         t1.book_introduce introduce,
         t3.catg_name type,
-        t5.sku_total skuTotal,
-        t5.sku_sale skuSale,
-        t6.picture_url image
+        t5.sku_total stockTotal,
+        t5.sku_sale stockSale,
+        t6.picture_url image,
+        t1.valid_state validState
         from
         t_book t1
         left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
@@ -22,13 +23,25 @@
         left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
         left join t_sku t5 on t4.sku_id = t5.sku_id and t5.valid_state = '1'
         left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
+        left join t_shop_user_book_relation t7 on t1.book_id = t7.book_id and t7.valid_state = '1'
         <where>
-        t1.valid_state = '1'
+        <if test="validState != null and validState !=''">
+            t1.valid_state = #{validState}
+        </if>
+        <if test="validStateList != null and validStateList !=''">
+            t1.valid_state in ${validStateList}
+        </if>
         <if test="key != null and key != ''">
-            and find_in_str(#{key},t1.`book_name`)
+            and t1.`book_name` like concat('%',#{key},'%')
+        </if>
+        <if test="name != null and name != ''">
+             and t1.`book_name` like concat('%',#{name},'%')
         </if>
         <if test="type != null and type != ''">
-            and find_in_str(#{key},t3.`catg_name`)
+            and t3.`catg_name` like concat('%',#{type},'%')
+        </if>
+        <if test="catgId != null and catgId != ''">
+            and t3.`catg_id` like concat('%',#{catgId},'%')
         </if>
         <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
             and t1.book_price between #{minPrice} and #{maxPrice}
@@ -36,8 +49,14 @@
         <if test="bookId != null and bookId != ''">
             and t1.book_id = #{bookId}
         </if>
+        <if test="useId != null and useId != ''">
+            and t7.user_id = #{useId}
+        </if>
         order by
         <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
+            t1.book_price ${order} ,
+        </if>
+        <if test="order != null and order != ''">
             t1.book_price ${order} ,
         </if>
         t1.book_id DESC
@@ -49,25 +68,39 @@
 
     <select id="queryBookListTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
         select
-        count(*) total
+        count(distinct t1.book_id) total
         from
         t_book t1
         left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
         left join t_catg t3 on t2.catg_id = t3.catg_id and t3.valid_state = '1'
         left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
         left join t_sku t5 on t4.sku_id = t5.sku_id and t5.valid_state = '1'
+        left join t_picture t6 on t1.book_id = t6.book_id and t6.valid_state = '1'
+        left join t_shop_user_book_relation t7 on t1.book_id = t7.book_id and t7.valid_state = '1'
         <where>
+            <if test="validState != null and validState !=''">
+                t1.valid_state = #{validState}
+            </if>
+            <if test="validStateList != null and validStateList !=''">
+                t1.valid_state in ${validStateList}
+            </if>
             <if test="key != null and key != ''">
-                and find_in_str(#{key},t1.`book_name`)
+                and t1.`book_name` like concat('%',#{key},'%')
+            </if>
+            <if test="name != null and name != ''">
+                and t1.`book_name` like concat('%',#{name},'%')
             </if>
             <if test="type != null and type != ''">
-                and find_in_str(#{key},t3.`catg_name`)
-            </if>
-            <if test="catgId != null and catgId != ''">
-                and t3.catg_id = #{catgId}
+                and t3.`catg_name` like concat('%',#{type},'%')
             </if>
             <if test="minPrice != null and minPrice != '' and maxPrice != null and maxPrice != ''">
                 and t1.book_price between #{minPrice} and #{maxPrice}
+            </if>
+            <if test="bookId != null and bookId != ''">
+                and t1.book_id = #{bookId}
+            </if>
+            <if test="useId != null and useId != ''">
+                and t7.user_id = #{useId}
             </if>
         </where>
     </select>
@@ -173,16 +206,16 @@
         (#{bookId},#{catgId},#{validState},#{userId},NOW())
     </insert>
     
-    <update id="operateBookValidState" parameterType="java.util.Map">
+    <update id="operateBookValidState" parameterType="java.util.List">
         update
         t_book
         set
-        valid_state = #{validState},
-        book_modf_user_id = #{userId},
+        valid_state = #{reqMap.validState},
+        book_modf_user_id = #{reqMap.userId},
         book_modf_time = NOW()
         where
         book_id in
-        <foreach collection="bookIdList" item="bookId" open="(" close=")" separator=",">
+        <foreach collection="mcdsIdList" item="bookId" open="(" close=")" separator=",">
             #{bookId}
         </foreach>
         and valid_state in ('0','1')
@@ -203,6 +236,16 @@
         and valid_state = '1'
     </update>
 
+    <select id="queryAllCatg" resultType="java.util.Map">
+        select
+        distinct
+        catg_id catgId,
+        catg_name name
+        from
+        t_catg
+        where
+        valid_state = '1'
+    </select>
 
 
 

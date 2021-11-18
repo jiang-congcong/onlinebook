@@ -2,6 +2,7 @@ package com.cn.book.serviceimpl;
 
 import com.cn.book.dao.UserDAO;
 import com.cn.book.iservice.IUserSV;
+import com.cn.book.utils.CommonUtils;
 import com.xiaoleilu.hutool.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,16 @@ public class UserSVImpl implements IUserSV {
 
     @Autowired
     private UserDAO userDAO;
+
+    @Autowired
+    private CommonUtils commonUtils;
+
     @Override
     public void register(Map<String, Object> reqMap) throws Exception {
         if(null!=reqMap&&reqMap.size()>0) {
             try {
                 userDAO.register(reqMap);
+                userDAO.insertUserProfilePic(reqMap);
             }catch (Exception e){
                 logger.error("用户注册失败："+e.getMessage());
                 throw new Exception("-9999",e);
@@ -64,7 +70,31 @@ public class UserSVImpl implements IUserSV {
         boolean result = true;
         if(null!=reqMap){
             try {
-                userDAO.updateUserProfilePic(reqMap);
+                boolean isNeedAddHeadImage = true;
+                Map<String,Object> queryUserInfo = userDAO.queryUserInfo(reqMap.get("userId").toString());
+                if(null!=queryUserInfo){
+                    String headImage = (String)queryUserInfo.get("userImage");
+                    if(!StrUtil.hasEmpty(headImage)){
+                        isNeedAddHeadImage = false;
+                    }
+                }
+                String userImage = (String)reqMap.get("userImage");
+
+                if(!isNeedAddHeadImage&&null!=userImage&&userImage.length()>0){ //修改头像
+                    userDAO.updateUserProfilePic(reqMap);
+                }
+                else if(isNeedAddHeadImage&&null!=userImage&&userImage.length()>0){ //插入头像
+                    Map<String,Object> insertMap = new HashMap<>();
+                    insertMap.put("userId",reqMap.get("userId"));
+                    insertMap.put("pictureId",commonUtils.createAllId());
+                    insertMap.put("validState","1");
+                    insertMap.put("userImage",reqMap.get("userImage"));
+                    userDAO.insertUserProfilePic(insertMap);
+                }
+                String username = (String)reqMap.get("username");
+                if(null!=username&&username.length()>0){ //更新用户名
+                    userDAO.updateUsername(reqMap);
+                }
             }catch (Exception e){
                 logger.error("更改用户头像失败！");
                 result = false;

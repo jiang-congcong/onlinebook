@@ -79,13 +79,19 @@ public class ReceiverController {
         }
         String receiverId = commonUtils.createAllId();
         reqMap.put("receiverId",receiverId);
-        boolean flag = iReceiverSV.addReceiver(reqMap);
+        boolean flag = true;
+        try {
+             flag = iReceiverSV.addReceiver(reqMap);
+        }catch (Exception e){
+            logger.error("新增收获地址失败："+e);
+            flag = false;
+        }
         if(flag){
             result.setRtnCode("200");
         }
         else{
             result.setRtnCode("400");
-            result.setRtnMessage("新增收货人失败！");
+            result.setRtnMessage("新增收货人信息失败！");
         }
         return result;
     }

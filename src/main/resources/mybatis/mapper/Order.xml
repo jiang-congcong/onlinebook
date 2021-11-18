@@ -45,17 +45,20 @@
         and t1.user_id = #{userId}
     </select>
     
-    <update id="updateOrderState" parameterType="java.util.Map">
+    <update id="updateOrderState">
         update
         t_order
         set
-        valid_state = #{orderState}
-        <if test="payType != null and payTpye != ''">
-            ,pay_type = #{payType}
+        valid_state = #{reqMap.orderState}
+        <if test="reqMap.payType != null and reqMap.payType != ''">
+            ,pay_type = #{reqMap.payType}
         </if>
         where
-        user_id = #{userId}
-        and order_id = #{orderId}
+        user_id = #{reqMap.userId}
+        and order_id in
+        <foreach collection="orderIdList" separator="," open="(" close=")" item="orderId">
+            #{orderId}
+        </foreach>
     </update>
 
     <select id="queryUserOrderList" parameterType="java.util.Map" resultType="java.util.Map">
@@ -64,7 +67,7 @@
         t1.user_id userId,
         t1.valid_state orderState,
         t1.order_price orderPrice,
-        t1.create_time orderDate,
+        DATE_FORMAT(t1.create_time,'%Y-%m-%d %H-%i-%s') orderDate,
         t1.receiver_id receiverId,
         t1.receiver_name receiverName,
         t1.receiver_phone receiverPhone,
@@ -85,9 +88,17 @@
         left join t_catg t4 on t2.book_catg_id = t4.catg_id
         left join t_sku_book_relation t5 on t2.book_id = t5.book_id and t5.valid_state = "1"
         left join t_sku t6 on t5.sku_id = t6.sku_id
+        <if test="shopId != null and shopId !=''">
+            left join t_shop_user_book_relation t7 on t7.book_id = t1.book_id and t7.valid_state = '1'
+        </if>
         where
         t1.valid_state in ('0','1','2')
-        and t1.user_id = #{userId}
+        <if test="shopId != null and shopId != ''">
+            and t7.shop_id = #{shopId}
+        </if>
+        <if test="orderId !=null and orderId != ''">
+            and t1.order_id like concat('%',#{orderId},'%')
+        </if>
         order by t1.create_time
         limit ${start} , ${limit}
     </select>
@@ -102,9 +113,17 @@
         left join t_catg t4 on t2.book_catg_id = t4.catg_id
         left join t_sku_book_relation t5 on t2.book_id = t5.book_id and t5.valid_state = "1"
         left join t_sku t6 on t5.sku_id = t6.sku_id
+        <if test="shopId != null and shopId !=''">
+            left join t_shop_user_book_relation t7 on t7.book_id = t1.book_id and t7.valid_state = '1'
+        </if>
         where
         t1.valid_state in ('0','1','2')
-        and t1.user_id = #{userId}
+        <if test="shopId != null and shopId != ''">
+            and t7.shop_id = #{shopId}
+        </if>
+        <if test="orderId !=null and orderId != ''">
+            and t1.order_id like concat('%',#{orderId},'%')
+        </if>
     </select>
 
     <update id="updateBookSku" parameterType="java.util.Map">
@@ -163,7 +182,6 @@
         where
         order_id = #{orderId}
         and user_id = #{userId}
-        and valid_state = '1'
     </update>
 
 </mapper>

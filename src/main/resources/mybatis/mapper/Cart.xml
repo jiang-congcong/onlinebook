@@ -19,7 +19,7 @@
         t7.cart_num bookNum
         from
         t_cart t7
-        left join t_book t1 on t7.book_id = t1.book_id and t1.valid_state = '1'
+        left join t_book t1 on t7.book_id = t1.book_id
         left join t_catg_book_relation t2 on t1.book_id = t2.book_id and t2.valid_state = '1'
         left join t_catg t3 on t2.catg_id = t3.catg_id and t3.valid_state = '1'
         left join t_sku_book_relation t4 on t1.book_id = t4.book_id and t4.valid_state = '1'
@@ -28,6 +28,7 @@
         where
         t7.user_id = #{userId}
         and t7.valid_state = '1'
+        and t1.valid_state = '1'
         order by
         t7.cart_id
         limit ${start} , ${limit}
@@ -87,5 +88,17 @@
         cart_id = #{cartId}
         and valid_state = '1'
     </update>
+
+    <select id="queryCartId" parameterType="java.util.Map" resultType="java.lang.String">
+        select
+        distinct
+        cart_id cartId
+        from
+        t_cart
+        where
+        book_id = #{bookId}
+        and user_id = #{userId}
+        and valid_state = '1'
+    </select>
 
 </mapper>

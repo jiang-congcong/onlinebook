@@ -21,4 +21,8 @@ public interface UserDAO {
     void updateUserProfilePic(Map<String,Object> reqMap) throws Exception;
 
     Map<String,Object> queryUserInfo(String userId) throws Exception;
+
+    void updateUsername(Map<String,Object> reqMap) throws Exception;
+
+    void insertUserProfilePic(Map<String,Object> reqMap) throws Exception;
 }

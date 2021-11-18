@@ -71,17 +71,22 @@ public class CartController {
         Result result = new Result();
         String userId = (String)reqMap.get("userId");
         String bookId = (String)reqMap.get("bookId");
-        //int bookNum = (Integer)reqMap.get("bookNum");
-        String operateType = (String)reqMap.get("operateType");
+        int bookNum = (Integer)reqMap.get("bookNum");
+        String operateType = "1";
+        if(bookNum<0){
+            operateType = "0";
+        }
+        reqMap.put("operateType","1");
         if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(bookId)||null==reqMap.get("bookNum")||StrUtil.hasEmpty(operateType)){
             result.setRtnCode("400");
             result.setRtnMessage("用户id或书籍id或书籍数量或操作类型不能为空！");
             return result;
         }
 
-        boolean flag = iCartSV.addCart(reqMap);
-        if(flag){
+        Map<String,Object> resultMap = iCartSV.addCart(reqMap);
+        if(null!=resultMap){
             result.setRtnCode("200");
+            result.setResult(resultMap);
             result.setRtnMessage("添加购物车成功");
         }
         return result;

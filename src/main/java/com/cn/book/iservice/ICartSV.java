@@ -13,7 +13,7 @@ public interface ICartSV {
 
     Map<String,Object> queryCartListByUserId(Map<String,Object> reqMap);
 
-    boolean addCart(Map<String,Object> reqMap) throws Exception;
+    Map<String,Object> addCart(Map<String,Object> reqMap) throws Exception;
 
     boolean deleteCart(@RequestBody Map<String,Object> reqMap) throws Exception;
 

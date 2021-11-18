@@ -59,6 +59,7 @@
         where
         user_id = #{userId}
         and is_default_address = '1'
+        and valid_state = '1'
     </select>
 
 

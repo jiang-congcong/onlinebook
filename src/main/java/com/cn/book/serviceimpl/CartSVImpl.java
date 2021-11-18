@@ -60,16 +60,22 @@ public class CartSVImpl implements ICartSV {
         return resultMap;
     }
 
-    public boolean addCart(Map<String,Object> reqMap) throws Exception{
+    public Map<String,Object> addCart(Map<String,Object> reqMap) throws Exception{
         boolean result = false;
+        Map<String,Object> resultMap = new HashMap<>();
         if(null!=reqMap&&reqMap.size()>0){
-            String cartId = (String)reqMap.get("cartId");
+            String cartId = "";
+            List<String> cartIdList = cartDAO.queryCartId(reqMap);
+            if(null!=cartIdList&&cartIdList.size()>0){
+                cartId = cartIdList.get(0);
+            }
             if(StrUtil.hasEmpty(cartId)){ //新增购物车记录
                 try {
                     String createCartId = commonUtils.createAllId();
                     reqMap.put("cartId",createCartId);
                     cartDAO.insertNewCart(reqMap);
                     result = true;
+                    resultMap.put("cardId",createCartId);
                 }catch (Exception e){
                     logger.error("新增购物车失败");
                 }
@@ -98,9 +104,10 @@ public class CartSVImpl implements ICartSV {
                 }catch (Exception e){
                     logger.error("更新购物车数量失败！");
                 }
+                resultMap.put("cardId",cartId);
             }
         }
-        return result;
+        return resultMap;
     }
 
     public boolean deleteCart(@RequestBody Map<String,Object> reqMap) throws Exception{

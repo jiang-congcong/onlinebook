@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/11/5 19:36
  */
 @RestController
-@RequestMapping("/0rder")
+@RequestMapping("/order")
 @Api(value = "/order",description = "订单操作类")
 public class OrderController {
 
@@ -57,9 +59,11 @@ public class OrderController {
         }
 
         List<Map<String,Object>> bookList = (List<Map<String,Object>>)reqMap.get("bookList");
+        List<String> orderIdList = new ArrayList<>();
         if(null!=bookList&&bookList.size()>0){
             for(Map<String,Object> eachMap:bookList){
                 String orderId = commonUtils.createAllId();//生成订单号
+                orderIdList.add(orderId);
                 eachMap.put("orderId",orderId);
                 eachMap.put("userId",userId);
                 eachMap.put("receiverId",receiverId);
@@ -71,6 +75,9 @@ public class OrderController {
         }
         try{
             iOrderSV.insertOrderInfo(bookList);
+            Map<String,Object> rtnMap = new HashMap<>();
+            rtnMap.put("orderIdList",orderIdList);
+            result.setResult(rtnMap);
             result.setRtnCode("200");
         }catch (Exception e){
             logger.error("用户下单失败："+e);
@@ -109,13 +116,15 @@ public class OrderController {
     public Result updateOrderState(@RequestBody Map<String,Object> reqMap) throws Exception{
         Result result = new Result();
         String userId = (String)reqMap.get("userId");
-        String orderId = (String)reqMap.get("orderId");
-        String orderState = (String)reqMap.get("orderState");
-        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(orderId)||StrUtil.hasEmpty(orderState)){
+        List<String> orderIdList = (List<String>)reqMap.get("orderId");
+        String orderState = "1";
+        if(StrUtil.hasEmpty(userId)||null==orderIdList||StrUtil.hasEmpty(orderState)){
             result.setRtnCode("400");
-            result.setRtnMessage("用户id、订单id、订单状态均不能为空");
+            result.setRtnMessage("用户id、订单id列表、订单状态均不能为空");
         }
         try{
+            reqMap.put("orderState",orderState);
+            reqMap.put("orderIdList",orderIdList);
             iOrderSV.updateOrderState(reqMap);
             result.setRtnCode("200");
         }catch (Exception e){
@@ -133,11 +142,15 @@ public class OrderController {
         Result result = new Result();
         String userId = (String)reqMap.get("userId");
         String orderId = (String)reqMap.get("orderId");
-        if(StrUtil.hasEmpty(userId)||StrUtil.hasEmpty(orderId)){
+        if(StrUtil.hasEmpty(userId)||null==orderId){
             result.setRtnCode("400");
             result.setRtnMessage("用户id、订单id均不能为空");
         }
+        List<String> orderIdList = new ArrayList<>();
+        orderIdList.add(orderId);
+        reqMap.put("orderIdList",orderIdList);
         reqMap.put("orderState","3");
+        reqMap.put("payType","");
         try{
             iOrderSV.updateOrderState(reqMap);
             result.setRtnCode("200");
@@ -149,7 +162,7 @@ public class OrderController {
         return result;
     }
 
-    @RequestMapping(method = RequestMethod.POST,value = "/list")
+    @RequestMapping(method = RequestMethod.POST,value = "/queryList")
     @ResponseBody
     @ApiOperation(value = "查询订单列表")
     public Result queryUserOrderList(@RequestBody Map<String,Object> reqMap) throws Exception {

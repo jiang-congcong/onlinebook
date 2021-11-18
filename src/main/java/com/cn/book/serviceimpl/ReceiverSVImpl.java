@@ -31,6 +31,17 @@ public class ReceiverSVImpl implements IReceiverSV {
             if(null == resultList){
                 resultList = new ArrayList<>();
             }
+            else{
+                for(Map<String,Object> eachMap:resultList){
+                    String isDefault = eachMap.get("isDefault").toString();
+                    if("0".equals(isDefault)){
+                        eachMap.put("isDefault",false);
+                    }
+                    else{
+                        eachMap.put("isDefault",true);
+                    }
+                }
+            }
         }catch (Exception e){
             logger.error("查询用户列表失败："+e);
             resultList = new ArrayList<>();
@@ -42,8 +53,9 @@ public class ReceiverSVImpl implements IReceiverSV {
     public boolean addReceiver(Map<String,Object> reqMap) throws Exception{
         boolean result = false;
         try{
+            String isDefault = reqMap.get("isDefault").toString();
             List<String> isDefaultAddress = receiverDAO.queryHasDefaultAddress(reqMap.get("userId").toString());
-            if(null!=isDefaultAddress&&isDefaultAddress.size()>0){
+            if(null!=isDefaultAddress&&isDefaultAddress.size()>0&&"1".equals(isDefault)){
                 logger.error("已有默认地址，不可新增默认地址");
                 throw new Exception("已有默认地址，不可新增默认地址");
             }

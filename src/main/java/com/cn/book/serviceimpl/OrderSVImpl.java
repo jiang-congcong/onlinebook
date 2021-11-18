@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,6 +98,9 @@ public class OrderSVImpl implements IOrderSV {
                 double d1 = (Double) resultMap.get("skuTotal");//原始库存总量
                 double d2 = (Double) resultMap.get("skuSale");//销量
                 resultMap.put("stockNum",d1-d2); //剩余库存
+                int orderNum = (int) resultMap.get("bookNum");
+                BigDecimal price =  (BigDecimal) resultMap.get("price");
+                resultMap.put("orderPrice",orderNum*(price.intValue()));
             }
         }catch (Exception e){
             logger.error("查询订单详情失败"+e);
@@ -107,8 +111,9 @@ public class OrderSVImpl implements IOrderSV {
     @Override
     public boolean updateOrderState(Map<String,Object> reqMap) throws Exception{
        boolean result = true;
+       List<String> orderIdList = (List<String>)reqMap.get("orderIdList");
        try{
-           orderDAO.updateOrderState(reqMap);
+           orderDAO.updateOrderState(reqMap,orderIdList);
        }catch (Exception e){
            logger.error("更新订单状态失败："+e);
            result = false;
@@ -126,9 +131,13 @@ public class OrderSVImpl implements IOrderSV {
             List<Map<String,Object>> resultList = orderDAO.queryUserOrderList(reqMap);
             if(null!=resultList&&resultList.size()>0){
                 for(Map<String,Object> eachMap:resultList){
+
                     String image = (String)eachMap.get("image");
                     image = commonUtils.dealImageTobase64(image);
                     eachMap.put("image",image);
+                    int orderNum = (int) eachMap.get("bookNum");
+                    BigDecimal price =  (BigDecimal) eachMap.get("price");
+                    eachMap.put("orderPrice",orderNum*(price.intValue()));
                 }
             }
             resultMap.put("data",resultList);

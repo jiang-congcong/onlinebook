@@ -7,13 +7,14 @@ import java.util.Map;
 
 /**
  * @author jiangcongcong
- * @date 2021/10/27 19:31
+ * @date 2021/11/13 12:53
  */
 @Configuration
 public class Result implements Serializable {
+
     private String rtnCode;
     private String rtnMessage;
-    private Map result;
+    private Map<String,Object> result;
 
     public String getRtnCode() {
         return rtnCode;
@@ -31,11 +32,11 @@ public class Result implements Serializable {
         this.rtnMessage = rtnMessage;
     }
 
-    public Map getResult() {
+    public Map<String, Object> getResult() {
         return result;
     }
 
-    public void setResult(Map result) {
+    public void setResult(Map<String, Object> result) {
         this.result = result;
     }
 

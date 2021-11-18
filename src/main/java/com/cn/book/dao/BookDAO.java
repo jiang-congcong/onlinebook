@@ -1,6 +1,7 @@
 package com.cn.book.dao;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -38,10 +39,12 @@ public interface BookDAO {
 
     void insertBookCatgRL(Map<String,Object> reqMap) throws Exception;
 
-    void operateBookValidState(Map<String,Object> reqMap) throws Exception;
+    void operateBookValidState(@Param("reqMap")Map<String,Object> reqMap,@Param("mcdsIdList")List<String> mcdsIdList) throws Exception;
 
     void updatePicValidState(Map<String,Object> reqMap) throws Exception;
 
     void updateBookInfo(Map<String,Object> reqMap) throws Exception;
+
+    List<Map<String, Object>> queryAllCatg() throws Exception;
 
 }
